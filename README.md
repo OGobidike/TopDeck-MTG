@@ -34,5 +34,9 @@ Explore machine learning techniques for predictive modeling (if feasible).
 Publish results and insights for the MTG community.
 
 
-Thank you for checking out Top-Deck: MTG! This project is fueled by a love for Magic: The Gathering and a curiosity for data-driven insights. I look forward to sharing new discoveries as the project progresses! (Izzet league #1)
+Thank you for checking out Top-Deck: MTG! This project is fueled by a love for Magic: The Gathering and a curiosity for data-driven insights. I look forward to sharing new discoveries as the project progresses! 
+
+P.S.(Izzet league #1)
+
+
 

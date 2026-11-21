@@ -1,0 +1,347 @@
+# 🃏 TopDeck: blueprint
+
+**Questions about Magic: The Gathering cards, answered five ways, with every answer scored by code.**
+
+Written 2026-11-20, before any code. This is the plan the repo is built against. When the plan changes, this file changes with it.
+
+## The idea
+
+TopDeck answers questions about Magic: The Gathering cards five ways, from a model's bare memory up to a knowledge graph, and measures what each step up buys and what it costs.
+
+Most assistants today search by meaning: they fetch the few passages that sound most like the question, then answer from those. That works for "what does Counterspell do?". It fails for "how many red Goblins cost two mana or less?", because counting needs every matching card, not the five that sound closest.
+
+A knowledge graph stores each fact as a link: this card is red, this card is a Goblin, this card was printed in that set. A query over those links can count, filter and hop from fact to fact, and return an exact answer.
+
+That a database can count and a top-five search can't is known before the first run, so it is not the finding. **The open questions are these:**
+
+- How often does a model write the right query, and how often is it wrong while sounding sure?
+- How much does the wording of a question move the answer?
+- How much of the graph's gain can plain filters already reach?
+- Does knowledge pulled out of rules text help, or mislead?
+- What does each answer cost?
+
+Code checks nearly every answer against a true answer that a query can prove. The few that need my judgement are labelled blind and marked as such.
+
+I started TopDeck in 2024 as a notebook that asked three questions about the cards and stopped before answering them. This rebuild answers those three first, then builds the system.
+
+## Why this build
+
+TopDeck shows four skills none of my other projects show yet, and it reuses the scoring from The Disease Division, my project that attacks and defends a search-based assistant.
+
+| What TopDeck shows | Where my other projects stop |
+| --- | --- |
+| Answers from a knowledge graph, compared with search on the same questions | The Disease Division searches by meaning and by keywords only |
+| A model that writes database queries, fenced in so it can only read | No project lets a model run a tool yet |
+| Facts pulled out of free text, scored against labels I write by hand | Nothing yet |
+| Telling apart what a model remembers from what it looked up | The Disease Division avoids the problem with a made-up airline; here I test it |
+
+**Where the idea comes from.** A September 2024 paper from Ant Group and Zhejiang University calls it Knowledge Augmented Generation, or KAG ([arXiv 2409.13731](https://arxiv.org/abs/2409.13731)). Its abstract reports its method scoring 19.6% and 33.5% higher than earlier methods on two public tests of multi-step questions.
+
+TopDeck is inspired by that paper and is not a copy of it. I take three of its ideas: a graph laid out so a model can read it, a link from every fact back to its source text, and questions broken into steps. I build them by hand so that I can measure each part and explain it. The paper's own framework runs as a separate stack of services under Docker Compose, by [its README](https://github.com/OpenSPG/KAG).
+
+**How this differs from a model writing SQL.** At its core the graph route is a model writing queries over tables, and I'd rather say so than have a reader point it out. Three things are added: every link carries its source, some links are knowledge extracted from text with a measured error rate, and a router decides when the graph is the wrong tool.
+
+## The cards
+
+The cards come from Scryfall's free bulk files, downloaded once, pinned by date and fingerprint, and never committed to the repo.
+
+| File | What it holds | What I use it for | Size |
+| --- | --- | --- | --- |
+| Oracle Cards | One entry per unique card, with its current rules text | The graph's cards, colours, types and rules text | About 139 MB unpacked in a May 2024 listing; measured again in Phase 1 |
+| Default Cards | One entry per printing of every card | Artists, sets and first-printing dates, which belong to a printing and not to a card | Not checked yet |
+
+**What counts as a card.** The file holds more than playable cards: as I remember it, tokens, emblems, art cards, joke sets and digital-only cards are in there too, and a Goblin token would change every Goblin count. Phase 1 starts with a written rule for what is in and what is out, and every count in the project follows it.
+
+**The awkward shapes.** Three I know of, each with its own tests:
+
+- A card's types arrive as one line of text that has to be split into supertype, type and subtype.
+- Two-faced cards keep their colours, types and text on each face, not on the card.
+- Power is text, not a number (some cards have a power of `*`), so "highest power" needs a rule.
+
+**The rules I follow.** Scryfall's API page bars charging for access to its data and bars simply republishing it; software must add something for its users. TopDeck is free and adds answers, scores and a graph. It downloads a bulk file and never crawls the live API. It uses no card images.
+
+**Wizards of the Coast's Fan Content Policy** allows free fan projects that carry a notice saying the work is unofficial, is not approved or endorsed by Wizards, and uses materials that belong to Wizards. The README will carry that notice, copied from the live policy page.
+
+**The pin, and its limit.** The download script records the file's date and its SHA-256 fingerprint. Scryfall rebuilds the bulk files every 12 hours and, as far as I know, keeps no old ones, so a stranger can't download my exact file. The repo therefore keeps the list of card ids in my snapshot and every count drawn from it. Run on a newer file, the script reports which cards were added or changed.
+
+**For tests,** a fixture (a small sample kept in the repo) of about 200 cards lets the test suite run in seconds with no download. It is separate from the cards I label by hand.
+
+I wrote this section from search results and memory, not from the pages themselves, which were out of reach where this blueprint was drawn. Reading them by eye is the first task of Phase 0.
+
+## The graph
+
+Every card links to ten kinds of fact, eight directly and two through its printings, and every link remembers where it came from.
+
+```mermaid
+flowchart LR
+    card(["Card<br/>name, cost, rules text, power"])
+    card --> colour["Colour"]
+    card --> identity["Colour identity"]
+    card --> type["Type"]
+    card --> subtype["Subtype"]
+    card --> supertype["Supertype"]
+    card --> keyword["Keyword"]
+    card --> format["Format"]
+    card --> effect["Effect<br/>extracted from rules text, scored"]
+    card --> printing(["Printing"])
+    printing --> set["Set"]
+    printing --> artist["Artist"]
+```
+
+Set and Artist hang off a printing, not the card itself: one card can be printed many times, by different artists.
+
+**Given links** come from Scryfall's own fields. Some arrive ready to use, such as colours, keywords and the formats a card is legal in. Types, subtypes and supertypes have to be split out of one line of text, so they are as right as my parser, and the parser has tests.
+
+**Extracted links** come from the rules text: what a card does. "Draw two cards" becomes a link from the card to the effect *draws cards*. I fix a closed list of twelve effects first, each with a written rule for the hard cases: who draws, and whether "discard a card" is a price the player pays or something done to an opponent.
+
+Extraction then runs in two stages:
+
+1. Patterns I write by hand catch the plain cases.
+2. A model reads the rules text the patterns missed and proposes links.
+
+**The labels that judge it.** A random sample would hold too few examples of each effect to measure anything. So for each effect I gather 30 cards that have it and 30 near misses, up to 720 judgements in all. Half are for tuning the patterns and half are held back.
+
+**The bar.** An effect's links join the graph only if at least 90% of a fresh sample of 50 of them are right. How many true cases each effect misses is reported and not gated. An effect that can't reach the bar stays out, and the README says so.
+
+I am the only labeller. To measure how steady I am, I label 50 of the cards again a week later and report how often I agree with myself.
+
+**Every link carries its source:** the card, the field or the exact words in the rules text, and the method that produced it. That is what lets an answer cite its evidence, and what lets me trace a wrong answer back to one bad link.
+
+**Where it lives:** PostgreSQL, as one table per kind of thing and one table per kind of link. Morning Manna, my Bible reading app, and The Disease Division already run on it. This graph is shallow, with most questions one to three steps deep, and Postgres handles deeper walks with recursive queries. A dedicated graph database is a stretch goal, taken only if a measured question type needs it.
+
+## The questions
+
+The golden set (the questions with known true answers that every system is scored on) holds about 530 questions in nine types. Six types have answers a query can prove; the rest need my own labels, and I say which.
+
+| Type | Example | What it tests | My prediction |
+| --- | --- | --- | --- |
+| Lookup | What does Counterspell do? | One card's text | Any system that looks it up |
+| Filter | Which blue creatures with flying cost exactly two mana? | Every match and no extras | Filters or the graph |
+| Count | How many red Goblins cost two mana or less? | An exact number over all cards | Filters or the graph |
+| Best of | Which green creature with trample has the highest power for four mana or less? | Sorting over every match | The graph |
+| Multi-step | Which artists have illustrated both a legendary Elf and a legendary Goblin? | Walking from fact to fact | The graph |
+| None | A Filter question with one condition changed so that nothing matches | Saying "none" for the right reason | Filters or the graph |
+| Meaning | Which cards punish an opponent for drawing extra cards? | What the rules text means | Search |
+| Mixed | Which black cards that force a discard are legal in Pauper? | Meaning and structure together | The router |
+| Out of scope | What is this card worth today? | Saying "I can't answer that" | Any system that says so |
+
+The predictions are written before any run. The results will sit beside them, and a wrong prediction stays in the README.
+
+**Five sources, so no score rests on one kind of wording:**
+
+- **288 from templates.** Each of the six provable types gets 12 templates, and each template is filled in 4 ways. A template comes with a query I write and test by hand, over the given links only; its result is the true answer. Answers longer than 25 cards are asked as counts.
+- **40 on meaning,** 20 Meaning and 20 Mixed. No query can prove these, and using my own extracted links as the truth would let the graph mark its own homework. So I write a definition for each question, then label by hand every card any system returns for it, without seeing which system returned it. Search engines are judged the same way.
+- **100 written by hand in Phase 0,** before the graph's layout exists, so the layout can't shape them. They are what a player would ask, and some will turn out to be out of scope.
+- **80 paraphrases** of template questions, to measure how much the wording alone moves the score.
+- **20 out of scope:** prices, rulings, deck advice.
+
+**Every word is pinned.** Each template states what its words mean: "red" means red is among the card's colours, and "legal" means legal, not banned or restricted.
+
+**"None" has a twin.** A broken query also returns nothing, and would be marked right by luck. So every None question is paired with its Filter original, and "none" only scores when the twin is right too.
+
+**The split.** Half the templates are for tuning and half are held back, balanced by type, and opened once for the final table. Every filling and every paraphrase of a template stays on the same side as its template, so nothing learned in tuning can leak across.
+
+**The cells are small, and I say so now.** Each type has about 24 held-back template questions from 6 templates. A score on 24 questions is only good to within about 18 points either way, so only large gaps will be called.
+
+**Memory against look-up, tested two ways.** First, twin questions: one about cards first printed at least six months after the model's training cut-off, one about older cards. Second, 30 cards I invent, which no model can have seen, added to a copy of the store for this test alone. Newer cards differ from older ones in more than date, so these results suggest and don't prove.
+
+**The 2024 questions come first.** Are Elves green and Goblins red? Do some artists appear far more than others? Which subtypes hide inside which colours? Phase 1 answers all three with counts and with lift (how many times more often a pairing appears than chance would give), each with its interval.
+
+## The contenders
+
+Five systems answer the same questions, each one step up from the last, so every gain is measured against something simpler.
+
+```mermaid
+flowchart LR
+    question["Question<br/>one of about 530"]
+    question --> a["A. Closed book<br/>the model alone, from memory"]
+    question --> b["B. Search<br/>closest cards by meaning and by keywords"]
+    question --> c["C. Search with filters<br/>the model sets filters, every match returns"]
+    question --> d["D. Graph<br/>a fenced query over the graph, read-only"]
+    question --> e["E. Router<br/>plans the steps and picks a route for each"]
+    a & b & c & d & e --> answer["Answer<br/>in a fixed form"]
+    answer --> scales["The scales<br/>code compares it with the true answer"]
+```
+
+The graph route is the one under test; the other four exist to show what it adds and what it costs.
+
+| Contender | How it answers | Where I expect it to fail |
+| --- | --- | --- |
+| A. Closed book | The model alone, from memory | Newer cards, counts, anything exact |
+| B. Search | Finds the closest cards by meaning and by keywords, then answers from those | Counts, filters and multi-step questions, where the answer needs every match |
+| C. Search with filters | The model also sets filters on the given fields (colour, type, cost), and every match comes back | Sorting, and any question that walks from one kind of thing to another |
+| D. Graph | The model reads the graph's layout, writes a query, and words the rows that come back | Questions about meaning, and any question it turns into the wrong query |
+| E. Router | Reads the question, plans the steps, and picks a route for each | The plan itself: one wrong step spoils the answer |
+
+**Contender C keeps D honest.** If filters reach the same score on a question type, the graph bought nothing there, and the grid will show it.
+
+**The same terms for all five.** One model version, the same settings, and the same number of prompt revisions each, with every revision logged.
+
+**The fence around contender D.** A model that writes queries is a model holding a tool, so I treat what it writes as untrusted, the lesson The Disease Division is built on:
+
+- Its database login sees one set of read-only views and nothing else. The golden questions and their true answers live in a different database.
+- Code parses each query and allows only listed parts: one SELECT, with or without a recursive step, and only functions on an allow-list. Writes, locks and sleeps are not on it.
+- The time limit and the read-only setting sit on the login itself, where a query can't change them.
+- A result cut short by the row limit counts as a failure, never as a silent short answer.
+- When a query fails, the model gets one try at fixing it, with the error message.
+- Every query is logged beside the answer it produced.
+- A test suite attacks the fence with each escape I know of, and CI runs it.
+- No prompt ever shows an example taken from the held-back templates.
+
+In the live demo, a visitor's question and the card text handed back to the model are both treated as untrusted too.
+
+**The plan is kept.** For a multi-step question the router writes its steps down before it acts, and each step's query and result is stored. A wrong answer can then be traced to the step that broke. The router's choice of route is scored against the route each question was built for.
+
+## The scales
+
+The headline is one grid, question type by contender, and not one overall number: an average would hide the very thing this project measures.
+
+**Answers come in a fixed form.** Every contender must reply with a list of card ids, a number, "none" or "out of scope", plus one word: sure or unsure. Code reads that form and never has to dig a card name out of a sentence.
+
+| Measure | How code checks it |
+| --- | --- |
+| Card lists | Of the cards named, the share that are right (precision); of the right cards, the share that were named (recall); and F1, one number that joins the two |
+| Counts and numbers | Exact match, and how far off when wrong |
+| Lookup | The quoted rules text matches the stored text letter for letter, and so do cost and type |
+| Empty answers | A correct "none" counts only when its twin question is right too; cards invented where none exist are counted |
+| Out of scope | Said so, or answered anyway |
+| Right query | The rows the model's query returns equal the true rows. This separates a wrong query from a right query worded badly |
+| Queries that run | The share that run first time, the share fixed on the retry, the share that never run |
+| Confidently wrong | A wrong answer marked "sure": the failure that does the most harm |
+| Citations | Every card id named exists, and every link cited is among the rows that came back |
+| Route | The router's choice against the route each question was built for |
+| Wording | The score on paraphrases beside the score on their originals |
+| Extraction | Each effect's share right, and share found, against my held-back labels |
+| Cost and speed | Cost per answer, and the typical and the slow response time |
+
+Meaning questions are the exception: their true set is my blind labels, so their recall is measured within the labelled cards.
+
+**The statistics, decided now.**
+
+- Each cell of the grid carries a Wilson interval, which stays honest at 0% and 100%.
+- Contenders are compared on the same questions by resampling whole templates, because four fillings of one template rise and fall together.
+- Six comparisons get a verdict, and I name them here: B against C, C against D and D against E overall; C against D on multi-step questions; D before and after extraction on mixed questions; and D on originals against paraphrases. Everything else is description.
+- The model runs at its steadiest setting and every output is stored. Fifty questions run three times, to measure how much the answers wobble on their own.
+
+I also keep every failed question in a browsable list, sorted by cause: wrong query, missing link, bad plan, or wording the system misread. That list decides what gets fixed next.
+
+## Stack and cost
+
+TopDeck adds no new infrastructure: it runs on the stack Morning Manna and The Disease Division already use, on a laptop with no graphics card.
+
+| Part | Tool |
+| --- | --- |
+| Language and tooling | Python 3.12, uv with a lock file, ruff, pytest, GitHub Actions |
+| Store | PostgreSQL with pgvector (its add-on for search by meaning), in Docker |
+| Search by meaning | FastEmbed, on the processor |
+| Query checking | A SQL parser library, chosen in Phase 4 |
+| Query writing and answers | Claude, through its API |
+| Serving | FastAPI, in Docker |
+
+**The key stays home.** The API key lives in a local file that Git ignores. Tests and CI (the checks GitHub runs on every push) use a stand-in client with recorded replies, so they need no key and spend nothing.
+
+**Every run leaves a record.** The results file names the model version, its settings and a fingerprint of each prompt. Every model output and every per-question score is committed, so anyone can rebuild the grid offline and for free.
+
+**Four costs are unknown until measured, and each has a guard:**
+
+- **Answering.** Phase 3 measures the cost per answer on 20 questions before any full run. The run script carries a hard spending cap and stops when it is reached.
+- **Extraction.** Reading tens of thousands of rules texts with a model is likely the largest bill. It is priced on 500 cards first, and I decide then how much of the pass to run.
+- **Disk.** The card files, the database and the embedding model each get their installed size quoted before anything downloads.
+- **Time to embed every card.** Measured on 1,000 cards first, then scaled.
+
+## Phases and tasks
+
+Nine phases, eleven tasks, and each phase ends on a proof that one command can repeat.
+
+| Phase | What it ships | The proof it's done | Tasks |
+| --- | --- | --- | --- |
+| 0. Ground | This blueprint in the repo, tooling, CI, the 2024 notebook moved aside unchanged, the data policies read, and my 100 hand-written questions | CI green on an empty package | T0 |
+| 1. The cards | The rule for what counts as a card, the pinned download, the parser, the cards in Postgres, every given link, the 2024 questions answered | Card and link counts reproduce from one command | T1, T2 |
+| 2. The questions | Templates with their proving queries, paraphrases, the out-of-scope set, the split | Every true answer is rebuilt by its query, and a test checks it | T3 |
+| 3. Search | Contenders A, B and C | The grid's first three rows, with intervals | T4 |
+| 4. The graph route | Contender D with its fence | The grid's fourth row; the fence's attack tests pass | T5, T6 |
+| 5. Extraction | The twelve effects and their rules, my labels, the patterns, the model pass, the new links | Each effect's score against held-back labels; the grid re-scored | T7 |
+| 6. The router | Contender E with its stored plans, and the memory tests | The held-back questions opened once; the final grid | T8 |
+| 7. Serving | The API, the Docker image, a small page to ask questions | The image builds from clean and answers the README's example | T9 |
+| 8. The telling | The README, charts for light and dark screens, the failure list, the project page | Every number rebuilds from the stored outputs; a fresh run lands inside the intervals | T10 |
+
+**Stretch goals, each taken only if the phase before it lands clean:**
+
+- **A cost curve.** Run contender D's query writing on a small and a large model, on the tuning half only, and plot accuracy against cost per answer.
+- **A live demo** on a free host, with a rate limit and the spending cap.
+- **A graph database beside Postgres,** only if the grid shows a question type that Postgres answers badly.
+- **Rulings as a second text source,** to test whether the extracted links improve with more text per card.
+
+## What happens to the 2024 notebook
+
+The 2024 code stays in the repo unchanged, in `notebooks/2024-original/`, with a test that fails if a single byte of it moves.
+
+It is 76 lines: it loads a CSV from my Google Drive, drops duplicate card names, prints four counts (artists, colour identity, type, subtype) and drops 17 columns. Its last line is a note to myself to tidy the cleaning into a function. None of its three questions gets an answer.
+
+Reading it again in 2026, I found three things the rebuild corrects:
+
+| 2024 | Why it matters | 2026 |
+| --- | --- | --- |
+| The CSV's source isn't recorded | Nobody else can rerun it, me included | A named source, a date and a fingerprint |
+| Duplicate names are dropped before artists are counted | If the file holds one row per printing, as the repeated names suggest, a card printed five times with five artists keeps one, and the artist counts are wrong | Artists are counted per printing |
+| Counts only | A count can't say whether Elves are green more than chance would make them | Counts with lift (how many times more often than chance) and its interval |
+
+The README will show 2024 beside 2026 plainly, as the churn README does. Where I began is part of the story.
+
+## Limits, and what is still unchecked
+
+TopDeck measures graph answers on a clean, shallow graph of game cards; it does not prove the same gains on messy company documents.
+
+**Limits I know now:**
+
+- **Part of the result is known in advance.** A database can count and a top-five search can't. Contender C is there so the graph gets no credit for what plain filters already do, and the open questions are the ones listed under The idea.
+- **The cells are small.** About 24 held-back questions per type, from 6 templates, means only large gaps can be called.
+- **One labeller.** Every hand label is mine. I measure how often I agree with myself; nobody else checks me.
+- **Models have read about Magic.** The closed-book contender, the newer-cards twins and the invented cards test that memory; they can't remove it.
+- **The graph is shallow and mostly given.** Scryfall's fields are already structured, so only the effects test extraction. The KAG paper's tests need deeper steps over plain documents.
+- **Template questions are tidier than real ones.** The hand-written set and the paraphrases measure the gap.
+- **A stranger can't fetch my exact card file.** They can rebuild every number from the stored outputs, and rerun on a newer file with the changes reported.
+- **How cards interact under the full rules is out of scope.** TopDeck answers what cards are and what they say, not how a judge would rule on two of them together.
+- **English cards, as of one pinned date.**
+
+**Still unchecked, because the pages were out of reach where this was drawn:**
+
+- [ ] Scryfall's [API page](https://scryfall.com/docs/api) and [bulk data page](https://scryfall.com/docs/api/bulk-data): the exact rules, the files' current sizes, the number of cards, and whether old bulk files can still be fetched. I know these from search results and memory only.
+- [ ] The shape of the data: the type line, two-faced cards, power as text, tokens in the file, and the field names I rely on. All from memory.
+- [ ] Wizards' [Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy): the exact notice to copy, and whether card text may sit in a public repo inside the test fixture, the golden questions and the failure list.
+- [ ] The KAG paper itself. Its title, authors and numbers come from search results of its arXiv listing; I read the OpenSPG README directly.
+
+## Decisions before the first task
+
+Seven choices were mine to make before task T0; my recommendation is beside each, and a tick marks a choice made.
+
+- [x] **Approve this blueprint.** Approved 2026-11-20.
+- [ ] **Rebuild in place or start a new repo?** In place, in TopDeck-MTG, with the history kept, as I did for the churn project.
+- [ ] **Include every printing from the start?** Yes, once its size is known: the artist question and the first-printing dates can't be answered without printings.
+- [ ] **How much hand labelling?** As planned: up to 720 effect judgements, the labels for 40 meaning questions, and 100 questions written by hand. It is the largest hand job in the project and the part no tool can do for me.
+- [ ] **Which model answers?** The one The Disease Division settles on, so the two projects share one client and one cost record.
+- [x] **Where it sits in the queue.** Phases 0 to 2 began on 2026-11-20: they need nothing from my other projects. Phase 3 reuses The Disease Division's search and scoring, so it waits for those. A LoRA fine-tune, my first PyTorch build, follows TopDeck.
+- [ ] **Read the policy pages by eye,** and tick the four boxes in the section above.
+
+## Words used here
+
+| Word | What it means |
+| --- | --- |
+| Golden set | The questions with known true answers that every system is scored on |
+| Template | A question with blanks, such as "how many \[colour\] \[subtype\]s cost \[number\] or less?", filled in several ways |
+| Held back | Questions no system is tuned on, opened once for the final scores |
+| Precision, recall, F1 | Of what was named, the share that is right; of what is right, the share that was named; one number joining the two |
+| Interval | The range a score would likely fall in if the questions were drawn again |
+| Link | One stored fact joining two things, such as a card and its colour |
+| Fence | The limits that stop a model-written query from doing anything but read |
+| Fixture | A small sample of data kept in the repo for tests |
+| CI | The checks GitHub runs on every push |
+| RAG | Answering from passages found by search |
+
+## Sources
+
+- [KAG: Boosting LLMs in Professional Domains via Knowledge Augmented Generation](https://arxiv.org/abs/2409.13731), arXiv 2409.13731 (search result, not opened)
+- [OpenSPG/KAG README](https://github.com/OpenSPG/KAG) (opened)
+- [Scryfall API documentation](https://scryfall.com/docs/api), [bulk data files](https://scryfall.com/docs/api/bulk-data), [rate limits](https://scryfall.com/docs/api/rate-limits) (search results, not opened)
+- [Wizards of the Coast Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy) (search result, not opened)
+- The 2024 TopDeck script in [my repo](https://github.com/OGobidike/TopDeck-MTG) (read in full)

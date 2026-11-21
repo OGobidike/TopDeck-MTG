@@ -1,0 +1,5 @@
+# Store every text file with Unix line endings, on every machine.
+* text=auto eol=lf
+
+# The 2024 code is kept byte for byte: Git must never rewrite its line endings.
+notebooks/2024-original/** -text

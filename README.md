@@ -15,12 +15,12 @@ I'm building it for two kinds of people:
 
 ## 🗺️ Where it stands
 
-Nothing here answers a question yet. The plan is written, the ground is laid, and the cards are counted.
+TopDeck can't take a free question yet. The cards are counted, the graph is built, and the three questions my 2024 notebook asked are [answered](docs/2024-QUESTIONS.md).
 
 | Phase | What it ships | Status |
 | --- | --- | --- |
 | 0. Ground | The [blueprint](docs/BLUEPRINT.md), tooling, CI, the 2024 code set aside untouched, and [108 questions I chose](questions/chosen.md) before the graph had a layout | 🔨 Under way: the 108 are chosen |
-| 1. The cards | The pinned card files, the rule for what counts as a card, the cards in PostgreSQL with every given link, and my three 2024 questions answered | 🔨 Under way: the files, the rule and the parser are in |
+| 1. The cards | The pinned card files, the rule for what counts as a card, the cards in PostgreSQL with every given link, and my three 2024 questions answered | 🔨 Under way: the graph and the 2024 answers are in; the tags review is left |
 | 2. The questions | About 540 questions, most with an answer a query can prove | Planned |
 | 3. Search | The model alone, search, and search with filters | Planned |
 | 4. The graph route | A model that writes read-only queries, inside a fence | Planned |
@@ -61,10 +61,37 @@ A card counts when all three of these hold:
 
 Two more rules cover the awkward shapes:
 
-- **A card with two faces is its front face.** Its own colours, types and power are the front's, and each face keeps its own. A split card is the exception: both halves count.
+- **A card with two faces is its front face.** Its own colours, types and power are the front's, and each face keeps its own. A split card is the exception: both halves count. Keywords are the other exception: Scryfall gives them for the whole card, not for each face, so a keyword only the back face has is still linked to the card, and the link says so.
 - **Power is a number only when it is a whole one.** Some cards have a power of `*`, so a question about the highest power leaves those out and says so.
 
 The card files are pinned to Scryfall's files of 2026-11-21 by their SHA-256 fingerprints. `uv run topdeck cards count` applies the rule and checks every number above against [`results/cards.json`](results/cards.json).
+
+## 🕸️ The graph
+
+The cards that count, their real printings, and the given links the [blueprint](docs/BLUEPRINT.md#the-graph) lists live in PostgreSQL as a graph: one table for each kind of thing, and one table for each kind of link between two things. Some facts Scryfall gives are not loaded yet, because nothing needs them: loyalty, defense, colour indicator, produced mana, flavour text and the artist of each face.
+
+| Things | Rows | | Links | Rows |
+| --- | --- | --- | --- | --- |
+| `cards` | 32,495 | | `card_colour` | 33,763 |
+| `printings` | 97,976 | | `card_colour_identity` | 36,690 |
+| `faces` | 1,694 | | `card_type` | 34,130 |
+| `artists` | 2,378 | | `card_subtype` | 34,038 |
+| `sets` | 626 | | `card_supertype` | 4,456 |
+| `keywords` | 861 | | `card_keyword` | 22,889 |
+| `subtypes` | 470 | | `card_legality` | 372,541 |
+| `formats` | 23 | | `printing_artist` | 97,969 |
+| `types` | 10 | | `face_colour` | 1,010 |
+| `colours` | 5 | | `face_type` | 1,764 |
+| `supertypes` | 4 | | `face_subtype` | 1,784 |
+| | | | `face_supertype` | 334 |
+
+That is **641,368 links** in all. Three things hold:
+
+- **Every link says where it came from:** the Scryfall field it was read from, such as `default_cards.artist`, and how. All of these are *given*, read straight from a field. Links pulled out of rules text come in a later phase, marked as such. Two columns are *derived*, worked out after loading rather than read from a field: each card's first printing date, and each set's earliest printing in the graph.
+- **Only real printings of cards that count are loaded:** on paper, in an ordinary set. That is why the graph holds 97,976 printings and not all 120,211.
+- **Building is safe to repeat.** The graph is loaded beside the live one and swapped in only when the whole load has succeeded. If any step fails, the old graph stands. If anything else has been built on the old graph, the build stops rather than destroy it.
+
+The layout is one file, [`schema.sql`](src/topdeck/sql/schema.sql). `uv run topdeck graph count` counts every table and checks it against [`results/graph.json`](results/graph.json).
 
 ## 🥊 The contest
 
@@ -100,9 +127,15 @@ That code and its README are still here, byte for byte, in [`notebooks/2024-orig
 | --- | --- | --- |
 | The data file's source isn't recorded | Nobody else can rerun it, me included | A named source, a date and a fingerprint |
 | Duplicate names are dropped before artists are counted | If the file holds one row per printing, a card printed five times by five artists keeps one, and the artist counts are wrong | Artists are counted per printing |
-| Counts only | A count can't say whether Elves are green more often than chance would make them | Counts with lift (how many times more often than chance) and its interval |
+| Counts only | A count can't say whether Elves are green more often than creatures in general | Counts with lift (how many times more often than among all the cards compared) and its interval |
 
-Phase 1 answers the three questions first. Where I began is part of the story.
+The graph now answers all three, on [their own page](docs/2024-QUESTIONS.md):
+
+- **Elves are green.** 569 of 669 Elf creatures are green, **3.55 times** as often as creatures in general.
+- **Goblins are red.** 453 of 512 are red, **3.83 times** as often as creatures in general.
+- **Some artists appear far more than others, and basic lands shape the top of the list.** John Avon has the most printings, 1,216, and 434 of them are basic lands. Leave basic lands out and Kev Walker leads with 1,126, while John Avon ranks 3. Counted the 2024 way, one printing per card, John Avon ranks 18.
+
+Where I began is part of the story.
 
 ## 🚀 Try it
 
@@ -126,18 +159,31 @@ uv run topdeck cards fetch --yes
 uv run topdeck cards count
 ```
 
-Scryfall replaces its files daily, so the pinned ones may no longer be there. If so, the fetch says so and stops; the recorded counts are still in `results/cards.json`.
+Scryfall replaces its files daily, so the pinned ones may one day no longer be there. If so, the fetch says so and stops; the recorded counts are still in `results/cards.json`.
+
+To build the graph and answer the 2024 questions, start the database first. You need [Docker](https://docs.docker.com/get-docker/).
+
+```bash
+docker compose up -d --wait
+uv run topdeck graph build
+uv run topdeck graph count
+uv run topdeck answers
+```
+
+Each command ends on one plain line that says whether it worked. The database is a local one for development: it listens on this machine only, on port 5544, and holds nothing but public card data. To use another PostgreSQL, set `TOPDECK_DATABASE_URL`. The tests use the same database, and skip their database part when it isn't running; set `TOPDECK_REQUIRE_DB=1` to make that a failure instead, as CI does.
 
 ## ✅ Tested
 
-- ✅ **53 tests**, run by CI on every push and pull request
+- ✅ **94 tests** (121 cases), run by CI on every push and pull request
 - ✅ **The 2024 files are pinned by their SHA-256 fingerprints.** No formatter may touch them, and Git may not rewrite their line endings; a test covers each
 - ✅ **Every rule for a chosen question is tested against the fault it exists to catch**: a missing question mark, a repeat, a gap in the numbering, a fragment
 - ✅ **The rule for what counts as a card is tested reason by reason,** on cards I invented, so no real card text sits in the tests
 - ✅ **The card count is checked against its record:** one changed number fails the command
 - ✅ **A download that isn't the pinned file is refused,** and nothing of it is kept
-- ✅ **No test can reach the network.** A fixture fails any test that tries, so later phases can't spend money by accident
-- ✅ **This README is tested too**: its test count, its phase table and its card numbers must match the repo, the blueprint and the record
+- ✅ **The graph is tested against a real PostgreSQL,** in CI too, where a missing database fails the run instead of skipping it: the link counts worked out by hand, where every link says it came from, the front-face and split-card rules and the keyword exception, a build that fails even after the old graph was dropped, and a build that stops rather than destroy something built on the graph
+- ✅ **The 2024 answers are tested on invented cards,** where the lift and its interval can be worked out by hand. They are checked exactly: nothing in them is random
+- ✅ **No test can reach the internet.** A fixture fails any test that tries, so later phases can't spend money by accident
+- ✅ **This README is tested too**: its test count, its phase table and every number above must match the repo, the blueprint and the records. The 2024 answers page is written from its record, never by hand
 - ✅ `ruff check` and `ruff format --check` pass
 
 ## 🗂️ Repo map
@@ -147,7 +193,10 @@ Scryfall replaces its files daily, so the pinned ones may no longer be there. If
 | [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | The plan the repo is built against |
 | [`questions/chosen.md`](questions/chosen.md) | The 108 questions I chose before the graph had a layout, and why |
 | [`src/topdeck/`](src/topdeck) | The package and the `topdeck` command |
-| [`results/cards.json`](results/cards.json) | The recorded card count, which one command reproduces |
+| [`docs/2024-QUESTIONS.md`](docs/2024-QUESTIONS.md) | My three 2024 questions, answered |
+| [`src/topdeck/sql/schema.sql`](src/topdeck/sql/schema.sql) | The graph's layout |
+| [`docker-compose.yml`](docker-compose.yml) | The local database |
+| [`results/`](results) | The recorded counts and answers, each reproduced by one command |
 | [`tests/`](tests) | The tests, and the invented cards they run on |
 | [`notebooks/2024-original/`](notebooks/2024-original) | Where I began, unchanged |
 

@@ -16,6 +16,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # The graph's tests run against a real PostgreSQL: the same image the project's
+    # docker-compose.yml starts. It is a throwaway, so its password is no secret.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: topdeck
+          POSTGRES_PASSWORD: topdeck
+          POSTGRES_DB: topdeck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U topdeck -d topdeck"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    env:
+      TOPDECK_DATABASE_URL: postgresql://topdeck:topdeck@localhost:5432/topdeck
+      # A database test that can't reach the database fails here instead of skipping,
+      # so a broken service can never leave CI green.
+      TOPDECK_REQUIRE_DB: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -23,6 +44,7 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      # No test may reach the network: no key, no cost.
-      - run: uv run pytest
+      # No test may reach the internet: no key, no cost. -rs lists any test that was
+      # skipped and why.
+      - run: uv run pytest -rs
       - run: uv run topdeck ground

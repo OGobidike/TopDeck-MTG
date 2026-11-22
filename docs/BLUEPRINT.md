@@ -52,6 +52,8 @@ The cards come from Scryfall's free bulk files, downloaded once, pinned by date 
 
 Both are gzipped JSON Lines files: one card to a line, compressed. I read them as a stream, so nothing has to be unpacked to disk.
 
+**Rulings join the core plan** (decided 2026-11-22). Scryfall's Rulings file holds the official rulings on how cards work, each tied to its card (5.5 MB packed on 2026-11-21). It is pinned like the card files and searched beside the rules text from Phase 3, so a rules question can be answered with the ruling it rests on. Many of the questions I care about most are rules questions, which is why it moved up from a stretch goal.
+
 **What counts as a card.** The file holds more than playable cards: Scryfall says every card type in every product is in there, tokens and joke cards included, and a Goblin token would change every Goblin count. Task T1 wrote the rule, and every count in the project follows it. A card counts when it is a card (not an art card, a token, an emblem, a plane, a scheme or a vanguard), when at least one of its printings is on paper in an ordinary set, and when the Vintage format knows it. That keeps 32,495 of the 39,356 entries; the README lists what is left out and why.
 
 **The awkward shapes.** Three, each with its own tests:
@@ -113,7 +115,7 @@ I am the only labeller. To measure how steady I am, I label 50 of the cards agai
 
 ## The questions
 
-The golden set (the questions with known true answers that every system is scored on) holds about 530 questions in nine types. Six types have answers a query can prove; the rest need my own labels, and I say which.
+The golden set (the questions with known true answers that every system is scored on) holds about 540 questions in nine types. Six types have answers a query can prove; the rest need my own labels, and I say which.
 
 | Type | Example | What it tests | My prediction |
 | --- | --- | --- | --- |
@@ -133,9 +135,11 @@ The predictions are written before any run. The results will sit beside them, an
 
 - **288 from templates.** Each of the six provable types gets 12 templates, and each template is filled in 4 ways. A template comes with a query I write and test by hand, over the given links only; its result is the true answer. Answers longer than 25 cards are asked as counts.
 - **40 on meaning,** 20 Meaning and 20 Mixed. No query can prove these, and using my own extracted links as the truth would let the graph mark its own homework. So I write a definition for each question, then label by hand every card any system returns for it, without seeing which system returned it. Search engines are judged the same way.
-- **100 written by hand in Phase 0,** before the graph's layout exists, so the layout can't shape them. They are what a player would ask, and some will turn out to be out of scope.
+- **108 chosen by me in Phase 0,** before the graph had a layout, so the layout can't shape them. Model helpers that never saw the layout drafted them; I rated every draft and kept the ones I rated highest. They live in [`questions/chosen.md`](../questions/chosen.md).
 - **80 paraphrases** of template questions, to measure how much the wording alone moves the score.
-- **20 out of scope:** prices, rulings, deck advice.
+- **20 out of scope:** prices, deck advice, and how two cards interact where no ruling covers it.
+
+**Why the chosen 108 look the way they do.** I want TopDeck to be mainly about questions a web search can't easily answer. The drafts I rated highest share three things: they need judgement or a story (rules interactions, advice on a deck, "what happened to" and "why"); they turn on art, artists and flavour text with a twist; or they ask whether anything like this exists in an odd corner. Many can't be answered from card data at all, such as what is painted in a picture or what to cut from a deck. For those, a system scores by saying it can't answer, or by answering with a source a reader can check. How each of the 108 is scored is set in Phase 2, question by question.
 
 **Every word is pinned.** Each template states what its words mean: "red" means red is among the card's colours, and "legal" means legal, not banned or restricted.
 
@@ -155,7 +159,7 @@ Five systems answer the same questions, each one step up from the last, so every
 
 ```mermaid
 flowchart LR
-    question["Question<br/>one of about 530"]
+    question["Question<br/>one of about 540"]
     question --> a["A. Closed book<br/>the model alone, from memory"]
     question --> b["B. Search<br/>closest cards by meaning and by keywords"]
     question --> c["C. Search with filters<br/>the model sets filters, every match returns"]
@@ -257,10 +261,10 @@ Nine phases, eleven tasks, and each phase ends on a proof that one command can r
 
 | Phase | What it ships | The proof it's done | Tasks |
 | --- | --- | --- | --- |
-| 0. Ground | This blueprint in the repo, tooling, CI, the 2024 notebook moved aside unchanged, the data policies read, and my 100 hand-written questions | CI green on an empty package | T0 |
+| 0. Ground | This blueprint in the repo, tooling, CI, the 2024 notebook moved aside unchanged, the data policies read, and my 108 chosen questions | CI green on an empty package | T0 |
 | 1. The cards | The rule for what counts as a card, the pinned download, the parser, the cards in Postgres, every given link, the 2024 questions answered | Card and link counts reproduce from one command | T1, T2 |
 | 2. The questions | Templates with their proving queries, paraphrases, the out-of-scope set, the split | Every true answer is rebuilt by its query, and a test checks it | T3 |
-| 3. Search | Contenders A, B and C | The grid's first three rows, with intervals | T4 |
+| 3. Search | Contenders A, B and C, searching the card text and the official rulings | The grid's first three rows, with intervals | T4 |
 | 4. The graph route | Contender D with its fence | The grid's fourth row; the fence's attack tests pass | T5, T6 |
 | 5. Extraction | The twelve effects and their rules, my labels, the patterns, the model pass, the new links | Each effect's score against held-back labels; the grid re-scored | T7 |
 | 6. The router | Contender E with its stored plans, and the memory tests | The held-back questions opened once; the final grid | T8 |
@@ -272,7 +276,6 @@ Nine phases, eleven tasks, and each phase ends on a proof that one command can r
 - **A cost curve.** Run contender D's query writing on a small and a large model, on the tuning half only, and plot accuracy against cost per answer.
 - **A live demo** on a free host, with a rate limit and the spending cap.
 - **A graph database beside Postgres,** only if the grid shows a question type that Postgres answers badly.
-- **Rulings as a second text source,** to test whether the extracted links improve with more text per card.
 
 ## What happens to the 2024 notebook
 
@@ -301,9 +304,9 @@ TopDeck measures graph answers on a clean, shallow graph of game cards; it does 
 - **One labeller.** Every hand label is mine. I measure how often I agree with myself; nobody else checks me.
 - **Models have read about Magic.** The closed-book contender, the newer-cards twins and the invented cards test that memory; they can't remove it.
 - **The graph is shallow and mostly given.** Scryfall's fields are already structured, so only the effects test extraction. The KAG paper's tests need deeper steps over plain documents.
-- **Template questions are tidier than real ones.** The hand-written set and the paraphrases measure the gap.
+- **Template questions are tidier than real ones.** The chosen set and the paraphrases measure the gap.
 - **A stranger can't fetch my exact card file.** They can rebuild every number from the stored outputs, and rerun on a newer file with the changes reported.
-- **How cards interact under the full rules is out of scope.** TopDeck answers what cards are and what they say, not how a judge would rule on two of them together.
+- **TopDeck doesn't work out new rulings.** It answers a rules question only where an official ruling covers it, and cites that ruling; anything further is out of scope.
 - **English cards, as of one pinned date.**
 
 **Checked against the pages themselves on 2026-11-21:**
@@ -319,7 +322,7 @@ TopDeck measures graph answers on a clean, shallow graph of game cards; it does 
 - [ ] Whether card text may sit in a public repo inside the golden questions and the failure list. The policy allows free fan content that uses Wizards' text, and doesn't speak of test data. I read that as yes, with the notice; it is my reading, not a ruling. The tests avoid the question by using invented cards.
 - [ ] The policy asks that fan content be free for others to use without giving credit, and the MIT licence asks that its notice be kept. I read the licence as covering my code and the policy as covering Wizards' material. Nobody has checked that reading.
 - [ ] The policy bars a list of logos, shown as pictures. By their file names they are the Magic and Arena logos, the planeswalker symbol and the mana symbols. TopDeck writes costs as text and uses no logo; I have yet to look at the pictures themselves.
-- [ ] Two files I didn't know of: Oracle Tags, where Scryfall's community labels what cards do, and Rulings. The tags could be a second opinion on my effect labels. Phase 1 looks at their quality before I decide.
+- [ ] Oracle Tags, where Scryfall's community labels what cards do, and Art Tags, where it labels what is in each picture. The first could be a second opinion on my effect labels; the second could answer some of my questions about art. Phase 1 looks at their quality before I decide.
 
 ## Decisions before the first task
 
@@ -328,7 +331,7 @@ Seven choices were mine to make before task T0; my recommendation is beside each
 - [x] **Approve this blueprint.** Approved 2026-11-20.
 - [ ] **Rebuild in place or start a new repo?** In place, in TopDeck-MTG, with the history kept, as I did for the churn project.
 - [ ] **Include every printing from the start?** Yes, once its size is known: the artist question and the first-printing dates can't be answered without printings.
-- [ ] **How much hand labelling?** As planned: up to 720 effect judgements, the labels for 40 meaning questions, and 100 questions written by hand. It is the largest hand job in the project and the part no tool can do for me.
+- [ ] **How much hand labelling?** As planned: up to 720 effect judgements, the labels for 40 meaning questions, and the choice of 108 questions, which is done. It is the largest hand job in the project and the part no tool can do for me.
 - [ ] **Which model answers?** The one The Disease Division settles on, so the two projects share one client and one cost record.
 - [x] **Where it sits in the queue.** Phases 0 to 2 began on 2026-11-20: they need nothing from my other projects. Phase 3 reuses The Disease Division's search and scoring, so it waits for those. A LoRA fine-tune, my first PyTorch build, follows TopDeck.
 - [ ] **Read the policy pages by eye,** and settle the five boxes still open in the section above.

@@ -1,6 +1,6 @@
 from topdeck.ground import (
-    HAND_WRITTEN,
-    HAND_WRITTEN_TARGET,
+    CHOSEN,
+    CHOSEN_TARGET,
     Question,
     check_questions,
     read_questions,
@@ -52,6 +52,6 @@ def test_more_than_the_page_holds_is_caught():
 
 
 def test_the_page_in_the_repo_keeps_every_rule(root):
-    questions = read_questions(root / HAND_WRITTEN)
+    questions = read_questions(root / CHOSEN)
     assert check_questions(questions) == []
-    assert len(questions) <= HAND_WRITTEN_TARGET
+    assert len(questions) == CHOSEN_TARGET

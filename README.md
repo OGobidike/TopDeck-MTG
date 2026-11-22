@@ -19,9 +19,9 @@ Nothing here answers a question yet. The plan is written, the ground is laid, an
 
 | Phase | What it ships | Status |
 | --- | --- | --- |
-| 0. Ground | The [blueprint](docs/BLUEPRINT.md), tooling, CI, the 2024 code set aside untouched, and [100 questions I write by hand](questions/hand_written.md) | 🔨 Under way |
+| 0. Ground | The [blueprint](docs/BLUEPRINT.md), tooling, CI, the 2024 code set aside untouched, and [108 questions I chose](questions/chosen.md) before the graph had a layout | 🔨 Under way: the 108 are chosen |
 | 1. The cards | The pinned card files, the rule for what counts as a card, the cards in PostgreSQL with every given link, and my three 2024 questions answered | 🔨 Under way: the files, the rule and the parser are in |
-| 2. The questions | About 530 questions, most with an answer a query can prove | Planned |
+| 2. The questions | About 540 questions, most with an answer a query can prove | Planned |
 | 3. Search | The model alone, search, and search with filters | Planned |
 | 4. The graph route | A model that writes read-only queries, inside a fence | Planned |
 | 5. Extraction | What cards do, pulled from rules text and scored against my labels | Planned |
@@ -78,6 +78,8 @@ Five systems answer the same questions, each one step up from the last, so every
 | D. Graph | The model writes a read-only query over the graph and words the rows that come back |
 | E. Router | Plans the steps and picks a route for each |
 
+**The questions I care about most are the ones a web search answers badly.** I rated 132 drafts, and the ones I rated highest need judgement or a story (rules, deck advice, "what happened to"), turn on art and artists with a twist, or ask whether anything odd exists at all. Many can't be answered from card data, so a system earns credit there by saying so, or by citing an official ruling. The [108 I chose](questions/chosen.md) are fixed in the repo before any system runs.
+
 That a database can count and a top-five search can't is known before the first run, so it is not the finding. These are the open questions:
 
 - How often does a model write the right query, and how often is it wrong while sounding sure?
@@ -114,7 +116,7 @@ uv run pytest
 uv run topdeck ground
 ```
 
-`topdeck ground` checks that the 2024 files are untouched, counts the hand-written questions and checks each one against its rules.
+`topdeck ground` checks that the 2024 files are untouched, counts the chosen questions and checks each one is well formed.
 
 To count the cards yourself, fetch the two pinned files. The first command only says what it would download (106.8 MB, kept packed); the second downloads.
 
@@ -130,7 +132,7 @@ Scryfall replaces its files daily, so the pinned ones may no longer be there. If
 
 - ✅ **53 tests**, run by CI on every push and pull request
 - ✅ **The 2024 files are pinned by their SHA-256 fingerprints.** No formatter may touch them, and Git may not rewrite their line endings; a test covers each
-- ✅ **Every rule for a hand-written question is tested against the fault it exists to catch**: a missing question mark, a repeat, a gap in the numbering, a fragment
+- ✅ **Every rule for a chosen question is tested against the fault it exists to catch**: a missing question mark, a repeat, a gap in the numbering, a fragment
 - ✅ **The rule for what counts as a card is tested reason by reason,** on cards I invented, so no real card text sits in the tests
 - ✅ **The card count is checked against its record:** one changed number fails the command
 - ✅ **A download that isn't the pinned file is refused,** and nothing of it is kept
@@ -143,7 +145,7 @@ Scryfall replaces its files daily, so the pinned ones may no longer be there. If
 | Path | What it holds |
 | --- | --- |
 | [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | The plan the repo is built against |
-| [`questions/hand_written.md`](questions/hand_written.md) | The questions I write by hand, before the graph's layout exists |
+| [`questions/chosen.md`](questions/chosen.md) | The 108 questions I chose before the graph had a layout, and why |
 | [`src/topdeck/`](src/topdeck) | The package and the `topdeck` command |
 | [`results/cards.json`](results/cards.json) | The recorded card count, which one command reproduces |
 | [`tests/`](tests) | The tests, and the invented cards they run on |

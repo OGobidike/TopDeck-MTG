@@ -36,13 +36,13 @@ def test_every_task_from_t0_to_t10_is_in_the_blueprint_once(root):
 def test_the_question_counts_in_the_blueprint_add_up(root):
     blueprint = (root / "docs/BLUEPRINT.md").read_text()
     sources = [int(n) for n in re.findall(r"^- \*\*(\d+) ", blueprint, flags=re.MULTILINE)]
-    assert sources == [288, 40, 100, 80, 20]
-    assert sum(sources) == 528  # "about 530"
-    assert "about 530 questions" in blueprint
+    assert sources == [288, 40, 108, 80, 20]
+    assert sum(sources) == 536  # "about 540"
+    assert "about 540 questions" in blueprint
 
 
 def test_no_placeholder_is_left_in_any_paper(root):
-    for name in ("README.md", "docs/BLUEPRINT.md", "questions/hand_written.md"):
+    for name in ("README.md", "docs/BLUEPRINT.md", "questions/chosen.md"):
         found = PLACEHOLDER.findall((root / name).read_text())
         assert not found, f"{name} still holds {found}"
 

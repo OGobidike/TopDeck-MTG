@@ -1,11 +1,11 @@
 import shutil
 
 from topdeck.cli import count_cards, fetch_cards, main
-from topdeck.ground import HAND_WRITTEN, ORIGINALS
+from topdeck.ground import CHOSEN, ORIGINALS
 
 
 def copy_of_the_ground(root, tmp_path):
-    for path in (*ORIGINALS, HAND_WRITTEN):
+    for path in (*ORIGINALS, CHOSEN):
         target = tmp_path / path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(root / path, target)
@@ -16,7 +16,7 @@ def test_ground_passes_on_the_repo_as_it_stands(root, capsys):
     assert main(["ground", "--root", str(root)]) == 0
     printed = capsys.readouterr().out
     assert "The 2024 files: 2 of 2 untouched" in printed
-    assert "of 100" in printed
+    assert "Chosen questions: 108 of 108" in printed
     assert "The ground holds." in printed
 
 
@@ -32,7 +32,7 @@ def test_ground_fails_when_a_2024_file_changes(root, tmp_path, capsys):
 
 def test_ground_fails_on_a_badly_formed_question(root, tmp_path, capsys):
     copy = copy_of_the_ground(root, tmp_path)
-    with (copy / HAND_WRITTEN).open("a") as file:
+    with (copy / CHOSEN).open("a") as file:
         file.write("\n1. List the red Goblins\n")
     assert main(["ground", "--root", str(copy)]) == 1
     assert "question mark" in capsys.readouterr().out
@@ -40,9 +40,9 @@ def test_ground_fails_on_a_badly_formed_question(root, tmp_path, capsys):
 
 def test_ground_explains_a_missing_questions_page(root, tmp_path, capsys):
     copy = copy_of_the_ground(root, tmp_path)
-    (copy / HAND_WRITTEN).unlink()
+    (copy / CHOSEN).unlink()
     assert main(["ground", "--root", str(copy)]) == 1
-    assert "Could not read the hand-written questions" in capsys.readouterr().out
+    assert "Could not read the chosen questions" in capsys.readouterr().out
 
 
 def test_fetch_says_what_it_costs_and_waits_for_a_yes(tmp_path, capsys):

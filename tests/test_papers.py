@@ -1,5 +1,6 @@
 """The README and the blueprint make claims. These tests fail when a claim drifts."""
 
+import json
 import re
 
 PHASE_ROW = re.compile(r"^\| (\d\. [^|]+?) \|", flags=re.MULTILINE)
@@ -55,3 +56,20 @@ def test_every_link_inside_the_repo_leads_somewhere(root):
 
 def test_the_blueprint_heading_the_readme_points_at_exists(root):
     assert "\n## The questions\n" in (root / "docs/BLUEPRINT.md").read_text()
+
+
+def test_the_card_numbers_in_the_readme_are_the_recorded_ones(root):
+    readme = (root / "README.md").read_text()
+    record = json.loads((root / "results/cards.json").read_text())
+    for key in ("entries", "cards", "printings"):
+        assert f"{record[key]:,}" in readme, f"README is missing {key} = {record[key]:,}"
+    for reason, number in record["left_out"].items():
+        row = f"| {number:,} | {reason[0].upper()}{reason[1:]} |"
+        assert row in readme, f"README is missing the row {row}"
+    assert record["snapshot"] in readme
+
+
+def test_the_recorded_count_adds_up(root):
+    record = json.loads((root / "results/cards.json").read_text())
+    assert record["cards"] + sum(record["left_out"].values()) == record["entries"]
+    assert len(record["card_ids_sha256"]) == 64

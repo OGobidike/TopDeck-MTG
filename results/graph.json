@@ -1,0 +1,28 @@
+{
+  "snapshot": "2026-11-21",
+  "tables": {
+    "colours": 5,
+    "types": 10,
+    "subtypes": 470,
+    "supertypes": 4,
+    "keywords": 861,
+    "formats": 23,
+    "cards": 32495,
+    "faces": 1694,
+    "sets": 626,
+    "artists": 2378,
+    "printings": 97976,
+    "card_colour": 33763,
+    "card_colour_identity": 36690,
+    "card_type": 34130,
+    "card_subtype": 34038,
+    "card_supertype": 4456,
+    "card_keyword": 22889,
+    "card_legality": 372541,
+    "face_colour": 1010,
+    "face_type": 1764,
+    "face_subtype": 1784,
+    "face_supertype": 334,
+    "printing_artist": 97969
+  }
+}

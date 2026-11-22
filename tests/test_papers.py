@@ -3,6 +3,9 @@
 import json
 import re
 
+from topdeck.graph import LINK_TABLES
+from topdeck.pages import ANSWERS_PAGE, artist_headline, render_answers
+
 PHASE_ROW = re.compile(r"^\| (\d\. [^|]+?) \|", flags=re.MULTILINE)
 # What an unfinished write-up leaves behind: $TOTAL_REVENUE, COUNTRY_1, TODO, TBD.
 PLACEHOLDER = re.compile(r"\$[A-Z_]{4,}|\b[A-Z]{4,}_\d\b|\bTODO\b|\bTBD\b|⟦")
@@ -42,7 +45,12 @@ def test_the_question_counts_in_the_blueprint_add_up(root):
 
 
 def test_no_placeholder_is_left_in_any_paper(root):
-    for name in ("README.md", "docs/BLUEPRINT.md", "questions/chosen.md"):
+    for name in (
+        "README.md",
+        "docs/BLUEPRINT.md",
+        "docs/2024-QUESTIONS.md",
+        "questions/chosen.md",
+    ):
         found = PLACEHOLDER.findall((root / name).read_text())
         assert not found, f"{name} still holds {found}"
 
@@ -73,3 +81,58 @@ def test_the_recorded_count_adds_up(root):
     record = json.loads((root / "results/cards.json").read_text())
     assert record["cards"] + sum(record["left_out"].values()) == record["entries"]
     assert len(record["card_ids_sha256"]) == 64
+
+
+def test_the_graph_numbers_in_the_readme_are_the_recorded_ones(root):
+    readme = (root / "README.md").read_text()
+    tables = json.loads((root / "results/graph.json").read_text())["tables"]
+    for table, rows in tables.items():
+        assert f"| `{table}` | {rows:,} |" in readme, f"README is missing {table} = {rows:,}"
+    assert set(LINK_TABLES) <= set(tables)
+    links = sum(tables[table] for table in LINK_TABLES)
+    assert f"**{links:,} links**" in readme
+
+
+def test_the_graph_and_the_card_count_agree(root):
+    tables = json.loads((root / "results/graph.json").read_text())["tables"]
+    cards = json.loads((root / "results/cards.json").read_text())
+    assert tables["cards"] == cards["cards"]
+    assert tables["printings"] <= cards["printings"]
+    assert tables["printing_artist"] <= tables["printings"]
+
+
+def test_the_answers_page_is_exactly_what_the_record_writes(root):
+    recorded = json.loads((root / "results/answers_2024.json").read_text())
+    assert (root / ANSWERS_PAGE).read_text() == render_answers(recorded)
+
+
+def test_the_headline_answers_in_the_readme_are_the_recorded_ones(root):
+    readme = (root / "README.md").read_text()
+    recorded = json.loads((root / "results/answers_2024.json").read_text())
+    elf = recorded["elves_and_goblins"]["elves_green"]
+    goblin = recorded["elves_and_goblins"]["goblins_red"]
+    for claim in (
+        f"{elf['with_colour']:,} of {elf['cards']:,} Elf creatures are green, "
+        f"**{elf['lift']:.2f} times**",
+        f"{goblin['with_colour']:,} of {goblin['cards']:,} are red, **{goblin['lift']:.2f} times**",
+        artist_headline(recorded["artists"]),
+    ):
+        assert claim in readme, f"README is missing: {claim}"
+
+
+def test_the_recorded_answers_add_up(root):
+    recorded = json.loads((root / "results/answers_2024.json").read_text())
+    tables = json.loads((root / "results/graph.json").read_text())["tables"]
+    assert recorded["artists"]["printings"] == tables["printing_artist"]
+    assert recorded["artists"]["artists"] == tables["artists"]
+    assert recorded["subtypes_in_colours"]["cards"] == tables["cards"]
+    three = recorded["subtypes_in_colours"]
+    for row in recorded["elves_and_goblins"]["commonest_subtypes"] + three["strongest"]:
+        assert row["share_low"] <= row["share"] <= row["share_high"]
+        assert row["lift_low"] <= row["lift"] <= row["lift_high"]
+        assert row["with_colour"] <= row["cards"]
+    for row in three["most_even"]:
+        assert abs(sum(row["share"].values()) - 1) < 1e-5, row["subtype"]
+        assert row["one_coloured_cards"] >= 30
+    leader = recorded["artists"]["by_printings"][0]
+    assert leader["basic_lands"] <= leader["printings"]

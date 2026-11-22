@@ -92,6 +92,7 @@ class Card:
     oracle_id: str
     name: str
     layout: str
+    mana_cost: str
     mana_value: float
     colours: frozenset[str]
     colour_identity: frozenset[str]
@@ -160,6 +161,7 @@ def card_from_scryfall(raw: dict) -> Card:
         oracle_id=raw.get("oracle_id") or raw_faces[0]["oracle_id"],
         name=raw["name"],
         layout=raw["layout"],
+        mana_cost=raw["mana_cost"] if "mana_cost" in raw else (front.mana_cost if front else ""),
         mana_value=float(raw.get("cmc", 0)),
         colours=colours,
         colour_identity=frozenset(raw.get("color_identity", [])),

@@ -1,0 +1,31 @@
+# The local database TopDeck's graph lives in.
+#
+#   docker compose up -d --wait     start it, and wait until it answers
+#   docker compose down             stop it; the data stays in the volume
+#   docker compose down --volumes   stop it and throw the data away
+#
+# This is a development database on your own machine. It holds only public card data,
+# and it listens on this machine alone, so the password below protects nothing and is
+# no secret. To use a different database, set TOPDECK_DATABASE_URL.
+services:
+  database:
+    # PostgreSQL 17 with pgvector, which the search phase needs later.
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: topdeck
+      POSTGRES_PASSWORD: topdeck
+      POSTGRES_DB: topdeck
+    ports:
+      # 5544 here, not PostgreSQL's usual 5432, so it can't collide with another
+      # database already running on this machine. 127.0.0.1 keeps it off the network.
+      - "127.0.0.1:5544:5432"
+    volumes:
+      - topdeck-database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U topdeck -d topdeck"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  topdeck-database:

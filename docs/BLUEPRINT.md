@@ -59,7 +59,7 @@ Both are gzipped JSON Lines files: one card to a line, compressed. I read them a
 **The awkward shapes.** Three, each with its own tests:
 
 - A card's types arrive as one line of text that has to be split into supertype, type and subtype.
-- Two-faced cards keep their colours, types and text on each face, not on the card. A card is its front face; a split card is both halves.
+- Two-faced cards keep their colours, types and text on each face, not on the card. A card is its front face; a split card is both halves. Keywords are the one exception: Scryfall gives them for the whole card, so they stay on the card, and their source says all faces.
 - Power is text, not a number (219 of the cards kept have a power such as `*`), so "highest power" counts whole numbers only.
 
 **The rules I follow.** Scryfall's API page bars charging for access to its data and bars simply republishing it; software must add something for its users. TopDeck is free and adds answers, scores and a graph. It downloads a bulk file and never crawls the live API. It uses no card images, and it names itself in every request, as Scryfall asks. Scryfall lists research and Magic software among the things its data is for.
@@ -94,7 +94,7 @@ flowchart LR
 
 Set and Artist hang off a printing, not the card itself: one card can be printed many times, by different artists.
 
-**Given links** come from Scryfall's own fields. Some arrive ready to use, such as colours, keywords and the formats a card is legal in. Types, subtypes and supertypes have to be split out of one line of text, so they are as right as my parser, and the parser has tests.
+**Given links** come from Scryfall's own fields. Some arrive ready to use, such as colours, keywords and the formats a card is legal in. Types, subtypes and supertypes have to be split out of one line of text, so they are as right as my parser, and the parser has tests. Keywords are given for the whole card, not for each face, so a keyword only a card's back face has is still linked to the card, with the source `oracle_cards.keywords (all faces)`. Two columns are derived rather than given: each card's first printing date and each set's earliest printing in the graph.
 
 **Extracted links** come from the rules text: what a card does. "Draw two cards" becomes a link from the card to the effect *draws cards*. I fix a closed list of twelve effects first, each with a written rule for the hard cases: who draws, and whether "discard a card" is a price the player pays or something done to an opponent.
 

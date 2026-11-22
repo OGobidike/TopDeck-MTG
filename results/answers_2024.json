@@ -1,0 +1,904 @@
+{
+  "snapshot": "2026-11-21",
+  "intervals": {
+    "level": 0.95,
+    "method": "A share has a Wilson 95% interval. A lift's interval is the share's interval divided by the base share; the base's own uncertainty is small and left out."
+  },
+  "elves_and_goblins": {
+    "creatures": 18080,
+    "colour_share": {
+      "black": 0.227931,
+      "green": 0.239325,
+      "red": 0.230863,
+      "blue": 0.218308,
+      "white": 0.239546
+    },
+    "elves_green": {
+      "subtype": "Elf",
+      "cards": 669,
+      "colour": "green",
+      "with_colour": 569,
+      "share": 0.850523,
+      "share_low": 0.821506,
+      "share_high": 0.875538,
+      "lift": 3.553838,
+      "lift_low": 3.432594,
+      "lift_high": 3.658359
+    },
+    "goblins_red": {
+      "subtype": "Goblin",
+      "cards": 512,
+      "colour": "red",
+      "with_colour": 453,
+      "share": 0.884766,
+      "share_low": 0.854197,
+      "share_high": 0.909604,
+      "lift": 3.83243,
+      "lift_low": 3.70002,
+      "lift_high": 3.940017
+    },
+    "commonest_subtypes": [
+      {
+        "subtype": "Human",
+        "cards": 4573,
+        "colour": "white",
+        "with_colour": 1812,
+        "share": 0.396239,
+        "share_low": 0.382155,
+        "share_high": 0.410496,
+        "lift": 1.654121,
+        "lift_low": 1.595329,
+        "lift_high": 1.71364
+      },
+      {
+        "subtype": "Warrior",
+        "cards": 1274,
+        "colour": "red",
+        "with_colour": 570,
+        "share": 0.44741,
+        "share_low": 0.420305,
+        "share_high": 0.474831,
+        "lift": 1.937989,
+        "lift_low": 1.820583,
+        "lift_high": 2.056765
+      },
+      {
+        "subtype": "Wizard",
+        "cards": 1183,
+        "colour": "blue",
+        "with_colour": 806,
+        "share": 0.681319,
+        "share_low": 0.654216,
+        "share_high": 0.707248,
+        "lift": 3.120913,
+        "lift_low": 2.996762,
+        "lift_high": 3.239687
+      },
+      {
+        "subtype": "Soldier",
+        "cards": 1082,
+        "colour": "white",
+        "with_colour": 739,
+        "share": 0.682994,
+        "share_low": 0.654663,
+        "share_high": 0.710031,
+        "lift": 2.851198,
+        "lift_low": 2.732928,
+        "lift_high": 2.964063
+      },
+      {
+        "subtype": "Spirit",
+        "cards": 672,
+        "colour": "white",
+        "with_colour": 232,
+        "share": 0.345238,
+        "share_low": 0.310262,
+        "share_high": 0.381973,
+        "lift": 1.441216,
+        "lift_low": 1.295206,
+        "lift_high": 1.594569
+      },
+      {
+        "subtype": "Elf",
+        "cards": 669,
+        "colour": "green",
+        "with_colour": 569,
+        "share": 0.850523,
+        "share_low": 0.821506,
+        "share_high": 0.875538,
+        "lift": 3.553838,
+        "lift_low": 3.432594,
+        "lift_high": 3.658359
+      },
+      {
+        "subtype": "Cleric",
+        "cards": 656,
+        "colour": "white",
+        "with_colour": 466,
+        "share": 0.710366,
+        "share_low": 0.67451,
+        "share_high": 0.743772,
+        "lift": 2.965462,
+        "lift_low": 2.81578,
+        "lift_high": 3.104918
+      },
+      {
+        "subtype": "Elemental",
+        "cards": 632,
+        "colour": "red",
+        "with_colour": 278,
+        "share": 0.439873,
+        "share_low": 0.401653,
+        "share_high": 0.47882,
+        "lift": 1.905345,
+        "lift_low": 1.739792,
+        "lift_high": 2.074046
+      },
+      {
+        "subtype": "Zombie",
+        "cards": 601,
+        "colour": "black",
+        "with_colour": 508,
+        "share": 0.845258,
+        "share_low": 0.81416,
+        "share_high": 0.871971,
+        "lift": 3.708387,
+        "lift_low": 3.57195,
+        "lift_high": 3.825583
+      },
+      {
+        "subtype": "Rogue",
+        "cards": 584,
+        "colour": "black",
+        "with_colour": 264,
+        "share": 0.452055,
+        "share_low": 0.412134,
+        "share_high": 0.492602,
+        "lift": 1.983293,
+        "lift_low": 1.808149,
+        "lift_high": 2.161187
+      },
+      {
+        "subtype": "Beast",
+        "cards": 533,
+        "colour": "green",
+        "with_colour": 299,
+        "share": 0.560976,
+        "share_low": 0.518557,
+        "share_high": 0.602521,
+        "lift": 2.343989,
+        "lift_low": 2.166747,
+        "lift_high": 2.517584
+      },
+      {
+        "subtype": "Goblin",
+        "cards": 512,
+        "colour": "red",
+        "with_colour": 453,
+        "share": 0.884766,
+        "share_low": 0.854197,
+        "share_high": 0.909604,
+        "lift": 3.83243,
+        "lift_low": 3.70002,
+        "lift_high": 3.940017
+      },
+      {
+        "subtype": "Knight",
+        "cards": 493,
+        "colour": "white",
+        "with_colour": 307,
+        "share": 0.622718,
+        "share_low": 0.579138,
+        "share_high": 0.6644,
+        "lift": 2.599571,
+        "lift_low": 2.417645,
+        "lift_high": 2.773576
+      },
+      {
+        "subtype": "Shaman",
+        "cards": 479,
+        "colour": "red",
+        "with_colour": 245,
+        "share": 0.511482,
+        "share_low": 0.466805,
+        "share_high": 0.555977,
+        "lift": 2.215524,
+        "lift_low": 2.021999,
+        "lift_high": 2.408258
+      },
+      {
+        "subtype": "Phyrexian",
+        "cards": 441,
+        "colour": "black",
+        "with_colour": 186,
+        "share": 0.421769,
+        "share_low": 0.376548,
+        "share_high": 0.468341,
+        "lift": 1.850419,
+        "lift_low": 1.652022,
+        "lift_high": 2.054745
+      },
+      {
+        "subtype": "Bird",
+        "cards": 431,
+        "colour": "blue",
+        "with_colour": 193,
+        "share": 0.447796,
+        "share_low": 0.401516,
+        "share_high": 0.494998,
+        "lift": 2.051216,
+        "lift_low": 1.839224,
+        "lift_high": 2.267432
+      },
+      {
+        "subtype": "Vampire",
+        "cards": 427,
+        "colour": "black",
+        "with_colour": 343,
+        "share": 0.803279,
+        "share_low": 0.762941,
+        "share_high": 0.838208,
+        "lift": 3.524212,
+        "lift_low": 3.347241,
+        "lift_high": 3.677457
+      },
+      {
+        "subtype": "Dragon",
+        "cards": 420,
+        "colour": "red",
+        "with_colour": 251,
+        "share": 0.597619,
+        "share_low": 0.550041,
+        "share_high": 0.643428,
+        "lift": 2.588633,
+        "lift_low": 2.382544,
+        "lift_high": 2.787056
+      },
+      {
+        "subtype": "Druid",
+        "cards": 387,
+        "colour": "green",
+        "with_colour": 367,
+        "share": 0.94832,
+        "share_low": 0.921529,
+        "share_high": 0.966299,
+        "lift": 3.962476,
+        "lift_low": 3.850528,
+        "lift_high": 4.0376
+      },
+      {
+        "subtype": "Cat",
+        "cards": 341,
+        "colour": "white",
+        "with_colour": 186,
+        "share": 0.545455,
+        "share_low": 0.492392,
+        "share_high": 0.597505,
+        "lift": 2.27703,
+        "lift_low": 2.055516,
+        "lift_high": 2.494317
+      }
+    ]
+  },
+  "artists": {
+    "artists": 2378,
+    "printings": 97969,
+    "basic_land_printings": 3888,
+    "median_printings": 7,
+    "top_one_percent": {
+      "artists": 24,
+      "printings": 15985,
+      "share": 0.163164
+    },
+    "by_printings": [
+      {
+        "artist": "John Avon",
+        "printings": 1216,
+        "basic_lands": 434,
+        "different_cards": 222,
+        "rank_without_basic_lands": 3,
+        "rank_2024": 18
+      },
+      {
+        "artist": "Kev Walker",
+        "printings": 1153,
+        "basic_lands": 27,
+        "different_cards": 466,
+        "rank_without_basic_lands": 1,
+        "rank_2024": 1
+      },
+      {
+        "artist": "Svetlin Velinov",
+        "printings": 879,
+        "basic_lands": 21,
+        "different_cards": 369,
+        "rank_without_basic_lands": 2,
+        "rank_2024": 2
+      },
+      {
+        "artist": "Dan Murayama Scott",
+        "printings": 774,
+        "basic_lands": 1,
+        "different_cards": 304,
+        "rank_without_basic_lands": 4,
+        "rank_2024": 3
+      },
+      {
+        "artist": "Daarken",
+        "printings": 758,
+        "basic_lands": 1,
+        "different_cards": 307,
+        "rank_without_basic_lands": 5,
+        "rank_2024": 5
+      },
+      {
+        "artist": "Greg Staples",
+        "printings": 756,
+        "basic_lands": 11,
+        "different_cards": 330,
+        "rank_without_basic_lands": 6,
+        "rank_2024": 4
+      },
+      {
+        "artist": "Adam Paquette",
+        "printings": 748,
+        "basic_lands": 165,
+        "different_cards": 182,
+        "rank_without_basic_lands": 10,
+        "rank_2024": 65
+      },
+      {
+        "artist": "Chris Rahn",
+        "printings": 706,
+        "basic_lands": 3,
+        "different_cards": 243,
+        "rank_without_basic_lands": 7,
+        "rank_2024": 12
+      },
+      {
+        "artist": "Mark Tedin",
+        "printings": 617,
+        "basic_lands": 29,
+        "different_cards": 207,
+        "rank_without_basic_lands": 9,
+        "rank_2024": 19
+      },
+      {
+        "artist": "Jesper Ejsing",
+        "printings": 604,
+        "basic_lands": 7,
+        "different_cards": 234,
+        "rank_without_basic_lands": 8,
+        "rank_2024": 16
+      },
+      {
+        "artist": "Christopher Moeller",
+        "printings": 595,
+        "basic_lands": 21,
+        "different_cards": 256,
+        "rank_without_basic_lands": 12,
+        "rank_2024": 7
+      },
+      {
+        "artist": "Dan Frazier",
+        "printings": 579,
+        "basic_lands": 66,
+        "different_cards": 178,
+        "rank_without_basic_lands": 23,
+        "rank_2024": 38
+      },
+      {
+        "artist": "Matt Stewart",
+        "printings": 578,
+        "basic_lands": 1,
+        "different_cards": 253,
+        "rank_without_basic_lands": 11,
+        "rank_2024": 8
+      },
+      {
+        "artist": "Steven Belledin",
+        "printings": 577,
+        "basic_lands": 31,
+        "different_cards": 184,
+        "rank_without_basic_lands": 17,
+        "rank_2024": 39
+      },
+      {
+        "artist": "Rob Alexander",
+        "printings": 576,
+        "basic_lands": 151,
+        "different_cards": 155,
+        "rank_without_basic_lands": 40,
+        "rank_2024": 54
+      }
+    ],
+    "without_basic_lands": {
+      "printings": 94081,
+      "by_printings": [
+        {
+          "artist": "Kev Walker",
+          "printings": 1126,
+          "different_cards": 461,
+          "rank_with_basic_lands": 2
+        },
+        {
+          "artist": "Svetlin Velinov",
+          "printings": 858,
+          "different_cards": 364,
+          "rank_with_basic_lands": 3
+        },
+        {
+          "artist": "John Avon",
+          "printings": 782,
+          "different_cards": 217,
+          "rank_with_basic_lands": 1
+        },
+        {
+          "artist": "Dan Murayama Scott",
+          "printings": 773,
+          "different_cards": 303,
+          "rank_with_basic_lands": 4
+        },
+        {
+          "artist": "Daarken",
+          "printings": 757,
+          "different_cards": 306,
+          "rank_with_basic_lands": 5
+        },
+        {
+          "artist": "Greg Staples",
+          "printings": 745,
+          "different_cards": 328,
+          "rank_with_basic_lands": 6
+        },
+        {
+          "artist": "Chris Rahn",
+          "printings": 703,
+          "different_cards": 241,
+          "rank_with_basic_lands": 8
+        },
+        {
+          "artist": "Jesper Ejsing",
+          "printings": 597,
+          "different_cards": 229,
+          "rank_with_basic_lands": 10
+        },
+        {
+          "artist": "Mark Tedin",
+          "printings": 588,
+          "different_cards": 202,
+          "rank_with_basic_lands": 9
+        },
+        {
+          "artist": "Adam Paquette",
+          "printings": 583,
+          "different_cards": 172,
+          "rank_with_basic_lands": 7
+        },
+        {
+          "artist": "Matt Stewart",
+          "printings": 577,
+          "different_cards": 252,
+          "rank_with_basic_lands": 13
+        },
+        {
+          "artist": "Christopher Moeller",
+          "printings": 574,
+          "different_cards": 251,
+          "rank_with_basic_lands": 11
+        },
+        {
+          "artist": "Kieran Yanner",
+          "printings": 561,
+          "different_cards": 251,
+          "rank_with_basic_lands": 16
+        },
+        {
+          "artist": "Carl Critchlow",
+          "printings": 559,
+          "different_cards": 228,
+          "rank_with_basic_lands": 17
+        },
+        {
+          "artist": "Pete Venters",
+          "printings": 554,
+          "different_cards": 293,
+          "rank_with_basic_lands": 18
+        }
+      ]
+    },
+    "the_2024_way": [
+      {
+        "artist": "Kev Walker",
+        "cards": 370,
+        "rank_by_printings": 2
+      },
+      {
+        "artist": "Svetlin Velinov",
+        "cards": 294,
+        "rank_by_printings": 3
+      },
+      {
+        "artist": "Dan Murayama Scott",
+        "cards": 268,
+        "rank_by_printings": 4
+      },
+      {
+        "artist": "Greg Staples",
+        "cards": 262,
+        "rank_by_printings": 6
+      },
+      {
+        "artist": "Daarken",
+        "cards": 255,
+        "rank_by_printings": 5
+      },
+      {
+        "artist": "Pete Venters",
+        "cards": 252,
+        "rank_by_printings": 18
+      },
+      {
+        "artist": "Christopher Moeller",
+        "cards": 219,
+        "rank_by_printings": 11
+      },
+      {
+        "artist": "Matt Stewart",
+        "cards": 217,
+        "rank_by_printings": 13
+      },
+      {
+        "artist": "Ron Spencer",
+        "cards": 205,
+        "rank_by_printings": 31
+      },
+      {
+        "artist": "Zoltan Boros",
+        "cards": 205,
+        "rank_by_printings": 21
+      },
+      {
+        "artist": "Kieran Yanner",
+        "cards": 202,
+        "rank_by_printings": 16
+      },
+      {
+        "artist": "Chris Rahn",
+        "cards": 201,
+        "rank_by_printings": 8
+      },
+      {
+        "artist": "Steve Prescott",
+        "cards": 197,
+        "rank_by_printings": 28
+      },
+      {
+        "artist": "Izzy",
+        "cards": 190,
+        "rank_by_printings": 19
+      },
+      {
+        "artist": "Carl Critchlow",
+        "cards": 186,
+        "rank_by_printings": 17
+      }
+    ]
+  },
+  "subtypes_in_colours": {
+    "cards": 32495,
+    "subtypes_considered": 155,
+    "colour_share": {
+      "black": 0.206432,
+      "green": 0.202954,
+      "red": 0.209817,
+      "blue": 0.207232,
+      "white": 0.212587
+    },
+    "strongest": [
+      {
+        "subtype": "Dryad",
+        "cards": 57,
+        "colour": "green",
+        "with_colour": 57,
+        "share": 1.0,
+        "share_low": 0.936861,
+        "share_high": 1.0,
+        "lift": 4.927218,
+        "lift_low": 4.616119,
+        "lift_high": 4.927218
+      },
+      {
+        "subtype": "Vedalken",
+        "cards": 73,
+        "colour": "blue",
+        "with_colour": 73,
+        "share": 1.0,
+        "share_low": 0.950008,
+        "share_high": 1.0,
+        "lift": 4.825512,
+        "lift_low": 4.584275,
+        "lift_high": 4.825512
+      },
+      {
+        "subtype": "Minion",
+        "cards": 42,
+        "colour": "black",
+        "with_colour": 41,
+        "share": 0.97619,
+        "share_low": 0.876788,
+        "share_high": 0.995785,
+        "lift": 4.728877,
+        "lift_low": 4.24735,
+        "lift_high": 4.823796
+      },
+      {
+        "subtype": "Shade",
+        "cards": 35,
+        "colour": "black",
+        "with_colour": 34,
+        "share": 0.971429,
+        "share_low": 0.854669,
+        "share_high": 0.994939,
+        "lift": 4.70581,
+        "lift_low": 4.140202,
+        "lift_high": 4.819697
+      },
+      {
+        "subtype": "Druid",
+        "cards": 387,
+        "colour": "green",
+        "with_colour": 367,
+        "share": 0.94832,
+        "share_low": 0.921529,
+        "share_high": 0.966299,
+        "lift": 4.672581,
+        "lift_low": 4.540572,
+        "lift_high": 4.761168
+      },
+      {
+        "subtype": "Phoenix",
+        "cards": 37,
+        "colour": "red",
+        "with_colour": 36,
+        "share": 0.972973,
+        "share_low": 0.861759,
+        "share_high": 0.995213,
+        "lift": 4.637248,
+        "lift_low": 4.107197,
+        "lift_high": 4.743245
+      },
+      {
+        "subtype": "Plant",
+        "cards": 97,
+        "colour": "green",
+        "with_colour": 89,
+        "share": 0.917526,
+        "share_low": 0.845624,
+        "share_high": 0.957617,
+        "lift": 4.520849,
+        "lift_low": 4.166572,
+        "lift_high": 4.718389
+      },
+      {
+        "subtype": "Cyclops",
+        "cards": 35,
+        "colour": "red",
+        "with_colour": 33,
+        "share": 0.942857,
+        "share_low": 0.813929,
+        "share_high": 0.984187,
+        "lift": 4.493714,
+        "lift_low": 3.879237,
+        "lift_high": 4.690694
+      },
+      {
+        "subtype": "Kor",
+        "cards": 88,
+        "colour": "white",
+        "with_colour": 84,
+        "share": 0.954545,
+        "share_low": 0.888883,
+        "share_high": 0.982184,
+        "lift": 4.49015,
+        "lift_low": 4.181274,
+        "lift_high": 4.620159
+      },
+      {
+        "subtype": "Skeleton",
+        "cards": 80,
+        "colour": "black",
+        "with_colour": 74,
+        "share": 0.925,
+        "share_low": 0.84588,
+        "share_high": 0.965175,
+        "lift": 4.4809,
+        "lift_low": 4.097625,
+        "lift_high": 4.675515
+      },
+      {
+        "subtype": "Sphinx",
+        "cards": 90,
+        "colour": "blue",
+        "with_colour": 83,
+        "share": 0.922222,
+        "share_low": 0.848061,
+        "share_high": 0.961815,
+        "lift": 4.450195,
+        "lift_low": 4.092331,
+        "lift_high": 4.641251
+      },
+      {
+        "subtype": "Rat",
+        "cards": 108,
+        "colour": "black",
+        "with_colour": 99,
+        "share": 0.916667,
+        "share_low": 0.849171,
+        "share_high": 0.95554,
+        "lift": 4.440531,
+        "lift_low": 4.113567,
+        "lift_high": 4.62884
+      },
+      {
+        "subtype": "Devil",
+        "cards": 55,
+        "colour": "red",
+        "with_colour": 51,
+        "share": 0.927273,
+        "share_low": 0.827401,
+        "share_high": 0.971356,
+        "lift": 4.419438,
+        "lift_low": 3.943441,
+        "lift_high": 4.629541
+      },
+      {
+        "subtype": "Octopus",
+        "cards": 46,
+        "colour": "blue",
+        "with_colour": 42,
+        "share": 0.913043,
+        "share_low": 0.796753,
+        "share_high": 0.965664,
+        "lift": 4.405903,
+        "lift_low": 3.844743,
+        "lift_high": 4.659824
+      },
+      {
+        "subtype": "Centaur",
+        "cards": 73,
+        "colour": "green",
+        "with_colour": 65,
+        "share": 0.890411,
+        "share_low": 0.798374,
+        "share_high": 0.943413,
+        "lift": 4.387249,
+        "lift_low": 3.933761,
+        "lift_high": 4.648403
+      }
+    ],
+    "one_coloured_subtypes_considered": 127,
+    "most_even": [
+      {
+        "subtype": "Spellshaper",
+        "one_coloured_cards": 54,
+        "evenness": 0.999566,
+        "share": {
+          "white": 0.185185,
+          "blue": 0.203704,
+          "black": 0.203704,
+          "red": 0.203704,
+          "green": 0.203704
+        }
+      },
+      {
+        "subtype": "Saga",
+        "one_coloured_cards": 168,
+        "evenness": 0.994414,
+        "share": {
+          "white": 0.25,
+          "blue": 0.172619,
+          "black": 0.178571,
+          "red": 0.202381,
+          "green": 0.196429
+        }
+      },
+      {
+        "subtype": "Sliver",
+        "one_coloured_cards": 89,
+        "evenness": 0.993932,
+        "share": {
+          "white": 0.224719,
+          "blue": 0.168539,
+          "black": 0.168539,
+          "red": 0.235955,
+          "green": 0.202247
+        }
+      },
+      {
+        "subtype": "Horse",
+        "one_coloured_cards": 42,
+        "evenness": 0.991475,
+        "share": {
+          "white": 0.214286,
+          "blue": 0.190476,
+          "black": 0.238095,
+          "red": 0.142857,
+          "green": 0.214286
+        }
+      },
+      {
+        "subtype": "Lesson",
+        "one_coloured_cards": 60,
+        "evenness": 0.988682,
+        "share": {
+          "white": 0.166667,
+          "blue": 0.233333,
+          "black": 0.15,
+          "red": 0.2,
+          "green": 0.25
+        }
+      },
+      {
+        "subtype": "Avatar",
+        "one_coloured_cards": 96,
+        "evenness": 0.985466,
+        "share": {
+          "white": 0.229167,
+          "blue": 0.166667,
+          "black": 0.21875,
+          "red": 0.135417,
+          "green": 0.25
+        }
+      },
+      {
+        "subtype": "Aura",
+        "one_coloured_cards": 1162,
+        "evenness": 0.983649,
+        "share": {
+          "white": 0.234079,
+          "blue": 0.271084,
+          "black": 0.180723,
+          "red": 0.142857,
+          "green": 0.171256
+        }
+      },
+      {
+        "subtype": "Arcane",
+        "one_coloured_cards": 95,
+        "evenness": 0.982117,
+        "share": {
+          "white": 0.157895,
+          "blue": 0.252632,
+          "black": 0.2,
+          "red": 0.252632,
+          "green": 0.136842
+        }
+      },
+      {
+        "subtype": "Wall",
+        "one_coloured_cards": 127,
+        "evenness": 0.981319,
+        "share": {
+          "white": 0.259843,
+          "blue": 0.259843,
+          "black": 0.15748,
+          "red": 0.173228,
+          "green": 0.149606
+        }
+      },
+      {
+        "subtype": "God",
+        "one_coloured_cards": 56,
+        "evenness": 0.978503,
+        "share": {
+          "white": 0.178571,
+          "blue": 0.196429,
+          "black": 0.178571,
+          "red": 0.303571,
+          "green": 0.142857
+        }
+      }
+    ]
+  }
+}

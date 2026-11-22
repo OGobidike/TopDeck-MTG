@@ -15,12 +15,12 @@ I'm building it for two kinds of people:
 
 ## 🗺️ Where it stands
 
-Nothing here answers a question yet. The plan is written and the ground is laid.
+Nothing here answers a question yet. The plan is written, the ground is laid, and the cards are counted.
 
 | Phase | What it ships | Status |
 | --- | --- | --- |
 | 0. Ground | The [blueprint](docs/BLUEPRINT.md), tooling, CI, the 2024 code set aside untouched, and [100 questions I write by hand](questions/hand_written.md) | 🔨 Under way |
-| 1. The cards | The pinned card file, the cards in PostgreSQL with every given link, and my three 2024 questions answered | Planned |
+| 1. The cards | The pinned card files, the rule for what counts as a card, the cards in PostgreSQL with every given link, and my three 2024 questions answered | 🔨 Under way: the files, the rule and the parser are in |
 | 2. The questions | About 530 questions, most with an answer a query can prove | Planned |
 | 3. Search | The model alone, search, and search with filters | Planned |
 | 4. The graph route | A model that writes read-only queries, inside a fence | Planned |
@@ -30,6 +30,41 @@ Nothing here answers a question yet. The plan is written and the ground is laid.
 | 8. The telling | The results, written up | Planned |
 
 The [blueprint](docs/BLUEPRINT.md) holds the full plan: the cards, the graph, the questions, the five contenders, how every answer is scored, the cost and the limits.
+
+## 🃏 The cards
+
+Scryfall's file of unique cards holds **39,356** entries, and **32,495** of them count as cards here. The rest are things a player wouldn't call a card, and one Goblin token would change every Goblin count, so the rule comes before any other number.
+
+A card counts when all three of these hold:
+
+1. **It is a card,** not an art card, a token, an emblem, a plane, a scheme or a vanguard.
+2. **At least one of its printings is on paper, in an ordinary set.** Every printing is checked, all 120,211 of them.
+3. **The Vintage format knows it:** it is legal, restricted or banned there. Vintage allows the most cards of any format, so this leaves out only cards that no format accepts.
+
+| Left out | Why |
+| --- | --- |
+| 2,411 | An art card |
+| 1,500 | Printed only in joke sets |
+| 1,020 | A token |
+| 742 | Found only in digital Alchemy sets |
+| 350 | Printed only as a keepsake |
+| 249 | Accepted by no format (a test card, or not yet released) |
+| 207 | A plane or phenomenon |
+| 107 | A vanguard |
+| 102 | A scheme |
+| 89 | An emblem |
+| 68 | Never printed on paper |
+| 13 | Printed only in token sets |
+| 3 | Printed only for Planechase |
+
+**The rule I wrote first was wrong, and the data showed it.** Scryfall's file shows one printing of each card, and I judged each card by that printing alone. Where the printing shown was a digital one, the card was dropped: 1,226 real cards, Tolarian Academy among them. The rule now checks every printing, and a test holds it there.
+
+Two more rules cover the awkward shapes:
+
+- **A card with two faces is its front face.** Its own colours, types and power are the front's, and each face keeps its own. A split card is the exception: both halves count.
+- **Power is a number only when it is a whole one.** Some cards have a power of `*`, so a question about the highest power leaves those out and says so.
+
+The card files are pinned to Scryfall's files of 2026-11-21 by their SHA-256 fingerprints. `uv run topdeck cards count` applies the rule and checks every number above against [`results/cards.json`](results/cards.json).
 
 ## 🥊 The contest
 
@@ -81,13 +116,26 @@ uv run topdeck ground
 
 `topdeck ground` checks that the 2024 files are untouched, counts the hand-written questions and checks each one against its rules.
 
+To count the cards yourself, fetch the two pinned files. The first command only says what it would download (106.8 MB, kept packed); the second downloads.
+
+```bash
+uv run topdeck cards fetch
+uv run topdeck cards fetch --yes
+uv run topdeck cards count
+```
+
+Scryfall replaces its files daily, so the pinned ones may no longer be there. If so, the fetch says so and stops; the recorded counts are still in `results/cards.json`.
+
 ## ✅ Tested
 
-- ✅ **27 tests**, run by CI on every push and pull request
+- ✅ **53 tests**, run by CI on every push and pull request
 - ✅ **The 2024 files are pinned by their SHA-256 fingerprints.** No formatter may touch them, and Git may not rewrite their line endings; a test covers each
 - ✅ **Every rule for a hand-written question is tested against the fault it exists to catch**: a missing question mark, a repeat, a gap in the numbering, a fragment
+- ✅ **The rule for what counts as a card is tested reason by reason,** on cards I invented, so no real card text sits in the tests
+- ✅ **The card count is checked against its record:** one changed number fails the command
+- ✅ **A download that isn't the pinned file is refused,** and nothing of it is kept
 - ✅ **No test can reach the network.** A fixture fails any test that tries, so later phases can't spend money by accident
-- ✅ **This README is tested too**: its test count and its phase table must match the repo and the blueprint
+- ✅ **This README is tested too**: its test count, its phase table and its card numbers must match the repo, the blueprint and the record
 - ✅ `ruff check` and `ruff format --check` pass
 
 ## 🗂️ Repo map
@@ -97,7 +145,8 @@ uv run topdeck ground
 | [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md) | The plan the repo is built against |
 | [`questions/hand_written.md`](questions/hand_written.md) | The questions I write by hand, before the graph's layout exists |
 | [`src/topdeck/`](src/topdeck) | The package and the `topdeck` command |
-| [`tests/`](tests) | The tests |
+| [`results/cards.json`](results/cards.json) | The recorded card count, which one command reproduces |
+| [`tests/`](tests) | The tests, and the invented cards they run on |
 | [`notebooks/2024-original/`](notebooks/2024-original) | Where I began, unchanged |
 
 ## ⚖️ Limits

@@ -45,28 +45,30 @@ TopDeck is inspired by that paper and is not a copy of it. I take three of its i
 
 The cards come from Scryfall's free bulk files, downloaded once, pinned by date and fingerprint, and never committed to the repo.
 
-| File | What it holds | What I use it for | Size |
+| File | What it holds | What I use it for | Measured on 2026-11-21 |
 | --- | --- | --- | --- |
-| Oracle Cards | One entry per unique card, with its current rules text | The graph's cards, colours, types and rules text | About 139 MB unpacked in a May 2024 listing; measured again in Phase 1 |
-| Default Cards | One entry per printing of every card | Artists, sets and first-printing dates, which belong to a printing and not to a card | Not checked yet |
+| Oracle Cards | One entry per unique card, with its current rules text | The graph's cards, colours, types and rules text | 39,356 entries; 25.5 MB packed, 211.5 MB unpacked |
+| Default Cards | One entry per printing of every card, in English where it exists | Artists, sets and first-printing dates, which belong to a printing and not to a card | 120,211 printings in 1,069 sets by 2,626 artists; 81.3 MB packed, 657.2 MB unpacked |
 
-**What counts as a card.** The file holds more than playable cards: as I remember it, tokens, emblems, art cards, joke sets and digital-only cards are in there too, and a Goblin token would change every Goblin count. Phase 1 starts with a written rule for what is in and what is out, and every count in the project follows it.
+Both are gzipped JSON Lines files: one card to a line, compressed. I read them as a stream, so nothing has to be unpacked to disk.
 
-**The awkward shapes.** Three I know of, each with its own tests:
+**What counts as a card.** The file holds more than playable cards: Scryfall says every card type in every product is in there, tokens and joke cards included, and a Goblin token would change every Goblin count. Task T1 wrote the rule, and every count in the project follows it. A card counts when it is a card (not an art card, a token, an emblem, a plane, a scheme or a vanguard), when at least one of its printings is on paper in an ordinary set, and when the Vintage format knows it. That keeps 32,495 of the 39,356 entries; the README lists what is left out and why.
+
+**The awkward shapes.** Three, each with its own tests:
 
 - A card's types arrive as one line of text that has to be split into supertype, type and subtype.
-- Two-faced cards keep their colours, types and text on each face, not on the card.
-- Power is text, not a number (some cards have a power of `*`), so "highest power" needs a rule.
+- Two-faced cards keep their colours, types and text on each face, not on the card. A card is its front face; a split card is both halves.
+- Power is text, not a number (219 of the cards kept have a power such as `*`), so "highest power" counts whole numbers only.
 
-**The rules I follow.** Scryfall's API page bars charging for access to its data and bars simply republishing it; software must add something for its users. TopDeck is free and adds answers, scores and a graph. It downloads a bulk file and never crawls the live API. It uses no card images.
+**The rules I follow.** Scryfall's API page bars charging for access to its data and bars simply republishing it; software must add something for its users. TopDeck is free and adds answers, scores and a graph. It downloads a bulk file and never crawls the live API. It uses no card images, and it names itself in every request, as Scryfall asks. Scryfall lists research and Magic software among the things its data is for.
 
-**Wizards of the Coast's Fan Content Policy** allows free fan projects that carry a notice saying the work is unofficial, is not approved or endorsed by Wizards, and uses materials that belong to Wizards. The README will carry that notice, copied from the live policy page.
+**Wizards of the Coast's Fan Content Policy** allows free fan projects that carry a notice saying the work is unofficial, is not approved or endorsed by Wizards, and uses materials that belong to Wizards. The README carries that notice, copied from the live policy page.
 
-**The pin, and its limit.** The download script records the file's date and its SHA-256 fingerprint. Scryfall rebuilds the bulk files every 12 hours and, as far as I know, keeps no old ones, so a stranger can't download my exact file. The repo therefore keeps the list of card ids in my snapshot and every count drawn from it. Run on a newer file, the script reports which cards were added or changed.
+**The pin, and its limit.** The download command records each file's SHA-256 fingerprint and refuses any file that doesn't match. Scryfall rebuilds the bulk files every 12 to 24 hours and each file's address changes daily, so I assume a stranger can't download my exact file. The repo therefore keeps the count drawn from my snapshot and one fingerprint over the ids of every card kept.
 
-**For tests,** a fixture (a small sample kept in the repo) of about 200 cards lets the test suite run in seconds with no download. It is separate from the cards I label by hand.
+**For tests,** the repo holds a small set of cards I invented, written in the shape of Scryfall's entries. The test suite runs in under a second with no download, and no real card text sits in the tests.
 
-I wrote this section from search results and memory, not from the pages themselves, which were out of reach where this blueprint was drawn. Reading them by eye is the first task of Phase 0.
+I first wrote this section from search results and memory, then checked it against Scryfall's and Wizards' own pages on 2026-11-21. The notice in the README matches the policy word for word.
 
 ## The graph
 
@@ -304,12 +306,20 @@ TopDeck measures graph answers on a clean, shallow graph of game cards; it does 
 - **How cards interact under the full rules is out of scope.** TopDeck answers what cards are and what they say, not how a judge would rule on two of them together.
 - **English cards, as of one pinned date.**
 
-**Still unchecked, because the pages were out of reach where this was drawn:**
+**Checked against the pages themselves on 2026-11-21:**
 
-- [ ] Scryfall's [API page](https://scryfall.com/docs/api) and [bulk data page](https://scryfall.com/docs/api/bulk-data): the exact rules, the files' current sizes, the number of cards, and whether old bulk files can still be fetched. I know these from search results and memory only.
-- [ ] The shape of the data: the type line, two-faced cards, power as text, tokens in the file, and the field names I rely on. All from memory.
-- [ ] Wizards' [Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy): the exact notice to copy, and whether card text may sit in a public repo inside the test fixture, the golden questions and the failure list.
-- [ ] The KAG paper itself. Its title, authors and numbers come from search results of its arXiv listing; I read the OpenSPG README directly.
+- **Scryfall's rules and files.** The rules are as described above. The files are gzipped JSON Lines, rebuilt every 12 to 24 hours.
+- **The shape of the data.** Scryfall's Cards page confirms it: the type line is one string, two-faced cards keep their fields on each face, power is text, and legality has four values (legal, not legal, restricted, banned).
+- **Wizards' Fan Content Policy,** last updated November 15, 2017. The notice is copied word for word.
+- **The KAG paper.** Its title, its two numbers, its five ideas and its authors' affiliations are as stated.
+
+**Still open:**
+
+- [ ] Whether an old bulk file can still be fetched once its address has changed.
+- [ ] Whether card text may sit in a public repo inside the golden questions and the failure list. The policy allows free fan content that uses Wizards' text, and doesn't speak of test data. I read that as yes, with the notice; it is my reading, not a ruling. The tests avoid the question by using invented cards.
+- [ ] The policy asks that fan content be free for others to use without giving credit, and the MIT licence asks that its notice be kept. I read the licence as covering my code and the policy as covering Wizards' material. Nobody has checked that reading.
+- [ ] The policy bars a list of logos, shown as pictures. By their file names they are the Magic and Arena logos, the planeswalker symbol and the mana symbols. TopDeck writes costs as text and uses no logo; I have yet to look at the pictures themselves.
+- [ ] Two files I didn't know of: Oracle Tags, where Scryfall's community labels what cards do, and Rulings. The tags could be a second opinion on my effect labels. Phase 1 looks at their quality before I decide.
 
 ## Decisions before the first task
 
@@ -321,7 +331,7 @@ Seven choices were mine to make before task T0; my recommendation is beside each
 - [ ] **How much hand labelling?** As planned: up to 720 effect judgements, the labels for 40 meaning questions, and 100 questions written by hand. It is the largest hand job in the project and the part no tool can do for me.
 - [ ] **Which model answers?** The one The Disease Division settles on, so the two projects share one client and one cost record.
 - [x] **Where it sits in the queue.** Phases 0 to 2 began on 2026-11-20: they need nothing from my other projects. Phase 3 reuses The Disease Division's search and scoring, so it waits for those. A LoRA fine-tune, my first PyTorch build, follows TopDeck.
-- [ ] **Read the policy pages by eye,** and tick the four boxes in the section above.
+- [ ] **Read the policy pages by eye,** and settle the five boxes still open in the section above.
 
 ## Words used here
 
@@ -340,8 +350,8 @@ Seven choices were mine to make before task T0; my recommendation is beside each
 
 ## Sources
 
-- [KAG: Boosting LLMs in Professional Domains via Knowledge Augmented Generation](https://arxiv.org/abs/2409.13731), arXiv 2409.13731 (search result, not opened)
-- [OpenSPG/KAG README](https://github.com/OpenSPG/KAG) (opened)
-- [Scryfall API documentation](https://scryfall.com/docs/api), [bulk data files](https://scryfall.com/docs/api/bulk-data), [rate limits](https://scryfall.com/docs/api/rate-limits) (search results, not opened)
-- [Wizards of the Coast Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy) (search result, not opened)
+- [KAG: Boosting LLMs in Professional Domains via Knowledge Augmented Generation](https://arxiv.org/abs/2409.13731), arXiv 2409.13731 (opened 2026-11-21)
+- [OpenSPG/KAG README](https://github.com/OpenSPG/KAG) (opened 2026-11-20)
+- [Scryfall API documentation](https://scryfall.com/docs/api), [bulk data files](https://scryfall.com/docs/api/bulk-data), [card objects](https://scryfall.com/docs/api/cards) (opened 2026-11-21)
+- [Wizards of the Coast Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy) (opened 2026-11-21)
 - The 2024 TopDeck script in [my repo](https://github.com/OGobidike/TopDeck-MTG) (read in full)

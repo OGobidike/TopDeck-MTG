@@ -1,0 +1,34 @@
+{
+  "snapshot": "2026-11-21",
+  "entries": 39356,
+  "printings": 120211,
+  "cards": 32495,
+  "left_out": {
+    "an art card": 2411,
+    "printed only in joke sets": 1500,
+    "a token": 1020,
+    "found only in digital Alchemy sets": 742,
+    "printed only as a keepsake": 350,
+    "accepted by no format (a test card, or not yet released)": 249,
+    "a plane or phenomenon": 207,
+    "a vanguard": 107,
+    "a scheme": 102,
+    "an emblem": 89,
+    "never printed on paper": 68,
+    "printed only in token sets": 13,
+    "printed only for Planechase": 3
+  },
+  "by_type": {
+    "Creature": 18080,
+    "Instant": 3705,
+    "Artifact": 3668,
+    "Enchantment": 3633,
+    "Sorcery": 3457,
+    "Land": 1156,
+    "Planeswalker": 297,
+    "Kindred": 73,
+    "Battle": 36,
+    "Conspiracy": 25
+  },
+  "card_ids_sha256": "6a58448a2e7fd0febfcdb10c5b54c7088694253774272160ea801d85bbb78e3f"
+}

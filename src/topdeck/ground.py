@@ -1,7 +1,7 @@
 """Phase 0, the ground: the checks that must hold before any card is loaded.
 
 Two things are guarded here. The 2024 files this project grew from stay exactly as they
-were, and the questions I write by hand are well formed and counted.
+were, and the questions I chose before the graph had a layout are well formed and counted.
 """
 
 from __future__ import annotations
@@ -22,8 +22,8 @@ ORIGINALS = {
     ),
 }
 
-HAND_WRITTEN = Path("questions/hand_written.md")
-HAND_WRITTEN_TARGET = 100
+CHOSEN = Path("questions/chosen.md")
+CHOSEN_TARGET = 108
 
 # A question is a numbered line: "12. Which cards ...?"
 _NUMBERED = re.compile(r"^(\d+)\.\s+(.*\S)\s*$")
@@ -51,7 +51,7 @@ def changed_originals(root: Path) -> list[Path]:
 
 
 def read_questions(path: Path) -> list[Question]:
-    """Read the numbered questions from the hand-written page, in the order written."""
+    """Read the numbered questions from a page, in the order written."""
     questions = []
     for line in path.read_text(encoding="utf-8").splitlines():
         match = _NUMBERED.match(line)
@@ -65,8 +65,8 @@ def _key(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
-def check_questions(questions: list[Question], target: int = HAND_WRITTEN_TARGET) -> list[str]:
-    """Every rule a hand-written question must keep. Returns the problems found."""
+def check_questions(questions: list[Question], target: int = CHOSEN_TARGET) -> list[str]:
+    """Every rule a chosen question must keep. Returns the problems found."""
     problems = []
     seen: dict[str, int] = {}
     for position, question in enumerate(questions, start=1):

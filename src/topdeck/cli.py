@@ -11,8 +11,8 @@ from pathlib import Path
 
 from topdeck.census import load_cards
 from topdeck.ground import (
-    HAND_WRITTEN,
-    HAND_WRITTEN_TARGET,
+    CHOSEN,
+    CHOSEN_TARGET,
     ORIGINALS,
     changed_originals,
     check_questions,
@@ -33,11 +33,11 @@ def ground(root: Path) -> int:
         problems.append(f"{path} is missing or changed; it must stay byte for byte as it was")
 
     try:
-        questions = read_questions(root / HAND_WRITTEN)
+        questions = read_questions(root / CHOSEN)
     except OSError as error:
-        print(f"Could not read the hand-written questions: {error}")
+        print(f"Could not read the chosen questions: {error}")
         return 1
-    print(f"Hand-written questions: {len(questions)} of {HAND_WRITTEN_TARGET}")
+    print(f"Chosen questions: {len(questions)} of {CHOSEN_TARGET}")
     problems.extend(check_questions(questions))
 
     if problems:
@@ -142,7 +142,7 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
 
     ground_parser = commands.add_parser(
-        "ground", help="check the 2024 files are untouched and count the hand-written questions"
+        "ground", help="check the 2024 files are untouched and count the chosen questions"
     )
     ground_parser.add_argument(
         "--root", type=Path, default=Path("."), help="the repo's root (default: here)"

@@ -50,9 +50,17 @@ The cards come from Scryfall's free bulk files, downloaded once, pinned by date 
 | Oracle Cards | One entry per unique card, with its current rules text | The graph's cards, colours, types and rules text | 39,356 entries; 25.5 MB packed, 211.5 MB unpacked |
 | Default Cards | One entry per printing of every card, in English where it exists | Artists, sets and first-printing dates, which belong to a printing and not to a card | 120,211 printings in 1,069 sets by 2,626 artists; 81.3 MB packed, 657.2 MB unpacked |
 
-Both are gzipped JSON Lines files: one card to a line, compressed. I read them as a stream, so nothing has to be unpacked to disk.
+Three more files were pinned a day later, on 2026-11-22:
 
-**Rulings join the core plan** (decided 2026-11-22). Scryfall's Rulings file holds the official rulings on how cards work, each tied to its card (5.5 MB packed on 2026-11-21). It is pinned like the card files and searched beside the rules text from Phase 3, so a rules question can be answered with the ruling it rests on. Many of the questions I care about most are rules questions, which is why it moved up from a stretch goal.
+| File | What it holds | What I use it for | Measured on 2026-11-22 |
+| --- | --- | --- | --- |
+| Rulings | Official rulings on how cards work, each tied to its card | Rules questions, answered with the ruling they rest on | 80,928 rulings, 69 of them written by Scryfall's staff; 5.5 MB packed |
+| Oracle Tags | Community labels on what cards do, from Scryfall Tagger | A second opinion beside my effect labels, never the answer key | 4,607 tags used 241,236 times; 6.1 MB packed |
+| Art Tags | Community labels on what each picture shows, from Scryfall Tagger | A search aid for some art questions, never their answer key | 11,863 tags used 512,162 times; 13.5 MB packed |
+
+All five are gzipped JSON Lines files: one card, printing, ruling or tag to a line, compressed. I read them as a stream, so nothing has to be unpacked to disk.
+
+**Rulings join the core plan** (decided 2026-11-22). Scryfall's Rulings file holds the official rulings on how cards work, each tied to its card. It is pinned like the card files, loaded into the graph in Phase 1, and searched beside the rules text from Phase 3, so a rules question can be answered with the ruling it rests on. Many of the questions I care about most are rules questions, which is why it moved up from a stretch goal.
 
 **What counts as a card.** The file holds more than playable cards: Scryfall says every card type in every product is in there, tokens and joke cards included, and a Goblin token would change every Goblin count. Task T1 wrote the rule, and every count in the project follows it. A card counts when it is a card (not an art card, a token, an emblem, a plane, a scheme or a vanguard), when at least one of its printings is on paper in an ordinary set, and when the Vintage format knows it. That keeps 32,495 of the 39,356 entries; the README lists what is left out and why.
 
@@ -74,7 +82,7 @@ I first wrote this section from search results and memory, then checked it again
 
 ## The graph
 
-Every card links to ten kinds of fact, eight directly and two through its printings, and every link remembers where it came from.
+Every card links to thirteen kinds of fact: ten directly, two through its printings and one through their pictures. Every link remembers where it came from.
 
 ```mermaid
 flowchart LR
@@ -87,14 +95,33 @@ flowchart LR
     card --> keyword["Keyword"]
     card --> format["Format"]
     card --> effect["Effect<br/>extracted from rules text, scored"]
+    card --> ruling["Ruling<br/>official"]
+    card --> oracletag["Oracle Tag<br/>community"]
     card --> printing(["Printing"])
     printing --> set["Set"]
     printing --> artist["Artist"]
+    printing --> picture(["Picture"])
+    picture --> arttag["Art Tag<br/>community"]
 ```
 
 Set and Artist hang off a printing, not the card itself: one card can be printed many times, by different artists.
 
 **Given links** come from Scryfall's own fields. Some arrive ready to use, such as colours, keywords and the formats a card is legal in. Types, subtypes and supertypes have to be split out of one line of text, so they are as right as my parser, and the parser has tests. Keywords are given for the whole card, not for each face, so a keyword only a card's back face has is still linked to the card, with the source `oracle_cards.keywords (all faces)`. Two columns are derived rather than given: each card's first printing date and each set's earliest printing in the graph.
+
+**Community links** come from Scryfall Tagger, where volunteers label what a card does (Oracle Tags) and what its picture shows (Art Tags). Wizards does not check them, and I have not found how Scryfall reviews them. Their method is `community`, and they are kept apart from the given links. Rulings are official, method `given`, except the few Scryfall's own staff wrote, which are marked `scryfall`.
+
+**No tag, checked or not, is ever the answer key for any score.** A template's true answer comes from its proving query over the given links only, and the golden questions and their answers live in a database of their own (both are set out below). The same holds for the chosen 108 and for any question about art: its true answer comes from my blind labels, or it is scored as one a system can't answer, and it is never read from the community tables. A tag may help a system find cards, and that is all.
+
+**The check of 50 art tags** measures how often Tagger is right and reports that number; it does not promote any tag. The 50 are drawn by a fixed hash, spread across Tagger's own weights: 10 weak, 20 median, 10 strong and 10 very strong. The weight is Tagger's grading of each label, and the notes on the labels suggest it says how prominent the thing is in the picture. I set the bar before I mark: at least 90% right, weighted by how many links of each weight the graph holds, the same bar as for extracted links. Nearly every art-tag link is median, so that overall share rests almost wholly on the 20 median labels: it is worth about 21 labels, it carries a Wilson interval at that size, and it clears the bar only if at most 2 of those 20 are wrong. With 10 labels each, the other weights only hint at whether Tagger's weights mean anything. Oracle Tags are not checked: they serve only as a second opinion beside my effect labels.
+
+I mark each label by rules written before the first one, as for the effects below:
+
+- I judge the picture only, on the printing's Scryfall page and the face the table names: not the card's name, type line, rules text, set or frame.
+- **Right:** what the tag names can be seen in the picture. How prominent it is does not matter: the weight is Tagger's, and I do not judge it.
+- **Wrong:** it can't be seen, or what is there is something else.
+- **Can't tell:** the picture alone can't show it, such as a plane or a place, how the art was made, what the card does, or words; or the picture is too small or dark to say. These are counted and reported, and left out of every share right.
+
+`topdeck tags sample --table` writes the 50 as a table to mark, with the notes volunteers wrote on some labels; it goes in `marking/`, which Git ignores. `topdeck tags score --table` reads my marks back, checks each row is still the label drawn under its number, and records the verdicts in `results/art_tag_verdicts.json`, keyed by picture and tag, with no notes.
 
 **Extracted links** come from the rules text: what a card does. "Draw two cards" becomes a link from the card to the effect *draws cards*. I fix a closed list of twelve effects first, each with a written rule for the hard cases: who draws, and whether "discard a card" is a price the player pays or something done to an opponent.
 
@@ -257,19 +284,19 @@ TopDeck adds no new infrastructure: it runs on the stack Morning Manna and The D
 
 ## Phases and tasks
 
-Nine phases, eleven tasks, and each phase ends on a proof that one command can repeat.
+Nine phases, twelve tasks, and each phase ends on a proof that one command can repeat.
 
 | Phase | What it ships | The proof it's done | Tasks |
 | --- | --- | --- | --- |
 | 0. Ground | This blueprint in the repo, tooling, CI, the 2024 notebook moved aside unchanged, the data policies read, and my 108 chosen questions | CI green on an empty package | T0 |
-| 1. The cards | The rule for what counts as a card, the pinned download, the parser, the cards in Postgres, every given link, the 2024 questions answered | Card and link counts reproduce from one command | T1, T2 |
-| 2. The questions | Templates with their proving queries, paraphrases, the out-of-scope set, the split | Every true answer is rebuilt by its query, and a test checks it | T3 |
-| 3. Search | Contenders A, B and C, searching the card text and the official rulings | The grid's first three rows, with intervals | T4 |
-| 4. The graph route | Contender D with its fence | The grid's fourth row; the fence's attack tests pass | T5, T6 |
-| 5. Extraction | The twelve effects and their rules, my labels, the patterns, the model pass, the new links | Each effect's score against held-back labels; the grid re-scored | T7 |
-| 6. The router | Contender E with its stored plans, and the memory tests | The held-back questions opened once; the final grid | T8 |
-| 7. Serving | The API, the Docker image, a small page to ask questions | The image builds from clean and answers the README's example | T9 |
-| 8. The telling | The README, charts for light and dark screens, the failure list, the project page | Every number rebuilds from the stored outputs; a fresh run lands inside the intervals | T10 |
+| 1. The cards | The rule for what counts as a card, the pinned download, the parser, the cards in Postgres, every given link, the rulings and the community tags, the 2024 questions answered, and my check of 50 art tags | Card and link counts reproduce from one command, and so does the score of my 50 art-tag verdicts | T1, T2, T3 |
+| 2. The questions | Templates with their proving queries, paraphrases, the out-of-scope set, the split | Every true answer is rebuilt by its query, and a test checks it | T4 |
+| 3. Search | Contenders A, B and C, searching the card text and the official rulings | The grid's first three rows, with intervals | T5 |
+| 4. The graph route | Contender D with its fence | The grid's fourth row; the fence's attack tests pass | T6, T7 |
+| 5. Extraction | The twelve effects and their rules, my labels, the patterns, the model pass, the new links | Each effect's score against held-back labels; the grid re-scored | T8 |
+| 6. The router | Contender E with its stored plans, and the memory tests | The held-back questions opened once; the final grid | T9 |
+| 7. Serving | The API, the Docker image, a small page to ask questions | The image builds from clean and answers the README's example | T10 |
+| 8. The telling | The README, charts for light and dark screens (the first five landed in Phase 1), the failure list, the project page | Every number rebuilds from the stored outputs; a fresh run lands inside the intervals | T11 |
 
 **Stretch goals, each taken only if the phase before it lands clean:**
 
@@ -322,7 +349,8 @@ TopDeck measures graph answers on a clean, shallow graph of game cards; it does 
 - [ ] Whether card text may sit in a public repo inside the golden questions and the failure list. The policy allows free fan content that uses Wizards' text, and doesn't speak of test data. I read that as yes, with the notice; it is my reading, not a ruling. The tests avoid the question by using invented cards.
 - [ ] The policy asks that fan content be free for others to use without giving credit, and the MIT licence asks that its notice be kept. I read the licence as covering my code and the policy as covering Wizards' material. Nobody has checked that reading.
 - [ ] The policy bars a list of logos, shown as pictures. By their file names they are the Magic and Arena logos, the planeswalker symbol and the mana symbols. TopDeck writes costs as text and uses no logo; I have yet to look at the pictures themselves.
-- [ ] Oracle Tags, where Scryfall's community labels what cards do, and Art Tags, where it labels what is in each picture. The first could be a second opinion on my effect labels; the second could answer some of my questions about art. Phase 1 looks at their quality before I decide.
+- [ ] Oracle Tags, where Scryfall's community labels what cards do, and Art Tags, where it labels what is in each picture. Both are now in the graph as community links, kept apart from the official ones. The first could be a second opinion on my effect labels; the second could help a system find cards for my art questions. Neither ever grades an answer. I check a fixed sample of 50 art tags by eye to measure how often Tagger is right.
+- [ ] Tagger's own pages: how it reviews volunteers' edits, and the terms its data comes under. I have not read them yet.
 
 ## Decisions before the first task
 
@@ -334,7 +362,7 @@ Seven choices were mine to make before task T0; my recommendation is beside each
 - [ ] **How much hand labelling?** As planned: up to 720 effect judgements, the labels for 40 meaning questions, and the choice of 108 questions, which is done. It is the largest hand job in the project and the part no tool can do for me.
 - [ ] **Which model answers?** The one The Disease Division settles on, so the two projects share one client and one cost record.
 - [x] **Where it sits in the queue.** Phases 0 to 2 began on 2026-11-20: they need nothing from my other projects. Phase 3 reuses The Disease Division's search and scoring, so it waits for those. A LoRA fine-tune, my first PyTorch build, follows TopDeck.
-- [ ] **Read the policy pages by eye,** and settle the five boxes still open in the section above.
+- [ ] **Read the policy pages by eye,** and settle the six boxes still open in the section above.
 
 ## Words used here
 

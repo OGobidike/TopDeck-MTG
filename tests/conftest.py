@@ -78,6 +78,16 @@ def card_files(tmp_path) -> tuple[Path, BulkFile, BulkFile]:
     return tmp_path, oracle, printings
 
 
+@pytest.fixture
+def source_files(card_files) -> tuple[BulkFile, BulkFile, BulkFile]:
+    """The invented rulings, Oracle Tags and Art Tags, packed and pinned beside the cards."""
+    folder = card_files[0]
+    return tuple(
+        pack(FIXTURES / f"{name}.jsonl", folder / f"{name}.jsonl.gz")
+        for name in ("rulings", "oracle_tags", "art_tags")
+    )
+
+
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 # Set in CI, and by anyone who wants a missing database to fail the run, not skip.
 REQUIRE_DATABASE = "TOPDECK_REQUIRE_DB"
@@ -126,12 +136,14 @@ def schema(database_url) -> str:
 
 
 @pytest.fixture
-def invented_graph(database_url, schema, card_files):
-    """The invented cards, loaded as a graph. Yields an open connection and the schema."""
+def invented_graph(database_url, schema, card_files, source_files):
+    """The invented cards, their rulings and tags, loaded as a graph. Yields an open
+    connection, the schema and the row counts."""
     folder, oracle, printings_file = card_files
     cards, _ = load_cards(folder, oracle, printings_file)
     printings = graph.read_printings(folder, cards, printings_file)
+    sources = graph.read_sources(folder, cards, printings, source_files)
     with psycopg.connect(database_url) as connection:
-        counts = graph.build(connection, cards, printings, schema)
+        counts = graph.build(connection, cards, printings, schema, sources)
         connection.commit()
         yield connection, schema, counts

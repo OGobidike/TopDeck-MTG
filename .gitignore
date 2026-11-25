@@ -13,3 +13,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+
+# My marked table of the art-tag check: it shows notes volunteers wrote on Tagger,
+# and their words stay out of the repo. The verdicts it gives are kept in results/.
+marking/

@@ -274,12 +274,18 @@ def artists(cursor: psycopg.Cursor) -> dict:
     rank_by_printing = {row[0]: rank for rank, row in enumerate(by_printing, start=1)}
     rank_without = {row[0]: rank for rank, row in enumerate(without_basics, start=1)}
     rank_2024 = {row[0]: rank for rank, row in enumerate(the_2024_way, start=1)}
+    printings_with = {row[0]: row[1] for row in by_printing}
 
     printings = sum(row[1] for row in by_printing)
     basic = sum(row[3] for row in by_printing)
     top_few = max(1, math.ceil(len(by_printing) / 100))
     held = sum(row[1] for row in by_printing[:top_few])
     counts = sorted(row[1] for row in by_printing)
+    # Both lists go down to the deepest rank, counting every printing, of any artist in
+    # the top of the list without basic lands, so each list is whole down to that rank.
+    deepest = max(
+        [TOP_ARTISTS, *(rank_by_printing[row[0]] for row in without_basics[:TOP_ARTISTS])]
+    )
 
     return {
         "artists": len(by_printing),
@@ -291,6 +297,8 @@ def artists(cursor: psycopg.Cursor) -> dict:
             "printings": held,
             "share": kept(held / printings) if printings else 0.0,
         },
+        "top": TOP_ARTISTS,
+        "ranks_kept": deepest,
         "by_printings": [
             {
                 "artist": name,
@@ -300,7 +308,7 @@ def artists(cursor: psycopg.Cursor) -> dict:
                 "rank_without_basic_lands": rank_without.get(name),
                 "rank_2024": rank_2024.get(name),
             }
-            for name, n, cards, basic_lands in by_printing[:TOP_ARTISTS]
+            for name, n, cards, basic_lands in by_printing[:deepest]
         ],
         "without_basic_lands": {
             "printings": sum(row[1] for row in without_basics),
@@ -310,8 +318,9 @@ def artists(cursor: psycopg.Cursor) -> dict:
                     "printings": n,
                     "different_cards": cards,
                     "rank_with_basic_lands": rank_by_printing.get(name),
+                    "printings_with_basic_lands": printings_with.get(name),
                 }
-                for name, n, cards in without_basics[:TOP_ARTISTS]
+                for name, n, cards in without_basics[:deepest]
             ],
         },
         "the_2024_way": [

@@ -13,6 +13,7 @@ import psycopg
 
 from topdeck import answers as answers_module
 from topdeck import graph
+from topdeck import tags as tags_module
 from topdeck.census import load_cards
 from topdeck.ground import (
     CHOSEN,
@@ -23,7 +24,17 @@ from topdeck.ground import (
     read_questions,
 )
 from topdeck.pages import ANSWERS_PAGE, render_answers
-from topdeck.snapshot import DATA_DIR, FILES, SNAPSHOT_DATE, BulkFile, fetch, verify
+from topdeck.snapshot import (
+    ALL_FILES,
+    DATA_DIR,
+    FILES,
+    SNAPSHOT_DATE,
+    SOURCE_FILES,
+    SOURCES_SNAPSHOT_DATE,
+    BulkFile,
+    fetch,
+    verify,
+)
 
 RESULTS = Path("results/cards.json")
 
@@ -49,6 +60,8 @@ def read_record(results: Path) -> tuple[dict | None, str | None]:
 
 GRAPH_RESULTS = Path("results/graph.json")
 ANSWERS_RESULTS = Path("results/answers_2024.json")
+SAMPLE_RESULTS = Path("results/art_tag_sample.json")
+VERDICTS_RESULTS = Path("results/art_tag_verdicts.json")
 
 
 def ground(root: Path) -> int:
@@ -72,9 +85,13 @@ def ground(root: Path) -> int:
         print(f"\n{len(problems)} problem(s):")
         for problem in problems:
             print(f"  - {problem}")
+        print("\nThe ground does not hold.")
         return 1
     print("\nThe ground holds.")
     return 0
+
+
+NUMBERS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
 
 
 def megabytes(size: int) -> str:
@@ -84,26 +101,39 @@ def megabytes(size: int) -> str:
 def fetch_cards(
     folder: Path,
     agreed: bool,
-    files: tuple[BulkFile, ...] = FILES,
+    files: tuple[BulkFile, ...] = ALL_FILES,
     open_url: Callable = urllib.request.urlopen,
 ) -> int:
-    """Download the pinned card files. Says what it will cost first, and waits for --yes."""
+    """Download the pinned files. Says what they will cost first, and waits for --yes."""
     total = sum(file.packed_bytes for file in files)
-    print(f"The card files of {SNAPSHOT_DATE}, from Scryfall:")
+    print("Scryfall's pinned files:")
     for file in files:
-        print(f"  {file.name:14} {megabytes(file.packed_bytes):>9}  {file.filename}")
+        held = " (already here)" if (folder / file.filename).is_file() else ""
+        print(
+            f"  {file.name:14} {megabytes(file.packed_bytes):>9}  {file.snapshot}  "
+            f"{file.filename}{held}"
+        )
     print(f"  {'In all':14} {megabytes(total):>9}  kept packed in {folder}/, never unpacked")
     if not agreed:
+        if all((folder / file.filename).is_file() for file in files):
+            print(
+                f"\nAll {NUMBERS.get(len(files), len(files))} pinned files are already here; "
+                "nothing to download. Run it again with --yes to check their fingerprints."
+            )
+            return 0
         print("\nNothing was downloaded. Run it again with --yes to fetch them.")
         return 0
+    print()
     for file in files:
+        held = (folder / file.filename).is_file()
         try:
             fetch(file, folder, open_url)
         except (OSError, ValueError) as error:
             print(f"\nCould not fetch {file.name}: {error}")
             print("Scryfall replaces its files daily, so this pinned one may be gone.")
             return 1
-        print(f"  fetched and verified: {file.filename}")
+        print(f"  {'already here, verified' if held else 'fetched and verified'}: {file.filename}")
+    print(f"\nEvery pinned file is in {folder}/ and matches its fingerprint.")
     return 0
 
 
@@ -136,10 +166,9 @@ def count_cards(
         print(f"\nRecorded in {results}.")
         return 0
 
-    try:
-        recorded = json.loads(results.read_text(encoding="utf-8"))
-    except OSError:
-        print(f"\nThere is no record at {results} to check against.")
+    recorded, problem = read_record(results)
+    if problem:
+        print(f"\n{problem}")
         return 1
     differences = [
         f"{key}: counted {census.get(key)!r}, recorded {recorded.get(key)!r}"
@@ -147,21 +176,24 @@ def count_cards(
         if census.get(key) != recorded.get(key)
     ]
     if differences:
-        print(f"\nThe count does not match {results}:")
+        print("\nWhere it differs:")
         for difference in differences:
             print(f"  - {difference}")
+        print(f"\nThe count does not match {results}.")
         return 1
     print(f"\nEvery number matches {results}.")
     return 0
 
 
 def files_are_in_place(folder: Path, files: tuple[BulkFile, ...]) -> bool:
-    """Check the pinned card files are there and whole, and say so plainly if not."""
+    """Check the pinned files are there and whole, and say so plainly if not."""
     try:
         for file in files:
             verify(folder / file.filename, file)
     except OSError:
-        print(f"The card files aren't in {folder}/. Fetch them with: topdeck cards fetch --yes")
+        print(
+            f"Scryfall's files aren't all in {folder}/. Fetch them with: topdeck cards fetch --yes"
+        )
         return False
     except ValueError as error:
         print(error)
@@ -174,9 +206,10 @@ def build_graph(
     url: str | None = None,
     schema: str = graph.SCHEMA,
     files: tuple[BulkFile, BulkFile] = FILES,
+    sources: tuple[BulkFile, BulkFile, BulkFile] = SOURCE_FILES,
 ) -> int:
-    """Load the cards that count, their real printings and every given link."""
-    if not files_are_in_place(folder, files):
+    """Load the cards that count, their real printings, their rulings and every link."""
+    if not files_are_in_place(folder, (*files, *sources)):
         return 1
     try:
         connection = graph.connect(url)
@@ -186,20 +219,32 @@ def build_graph(
     try:
         cards, _ = load_cards(folder, *files)
         printings = graph.read_printings(folder, cards, files[1])
+        extra = graph.read_sources(folder, cards, printings, sources)
         with connection:
-            counts = graph.build(connection, cards, printings, schema)
+            counts = graph.build(connection, cards, printings, schema, extra)
     except (psycopg.Error, ValueError, KeyError) as error:
         print(
             f"The graph was not built, and any graph already there is unchanged: "
             f"{first_line(error)}"
         )
         return 1
-    links = sum(counts[table] for table in graph.LINK_TABLES)
+    given = sum(counts[table] for table in graph.GIVEN_LINK_TABLES)
+    community = sum(counts[table] for table in graph.COMMUNITY_LINK_TABLES)
     print(
-        f"The graph is built: {counts['cards']:,} cards, {counts['printings']:,} printings "
-        f"and {links:,} links."
+        f"The graph is built: {counts['cards']:,} cards, {counts['printings']:,} printings, "
+        f"{counts['rulings']:,} rulings, {given:,} official links and "
+        f"{community:,} community ones."
     )
     return 0
+
+
+# How the record's keys are said on screen.
+SAID = {
+    "given links": "official links",
+    "rulings": "rulings",
+    "oracle tags": "Oracle Tags",
+    "art tags": "Art Tags",
+}
 
 
 def count_graph(
@@ -213,10 +258,16 @@ def count_graph(
         return 1
     try:
         with connection:
-            if not graph.is_built(connection, schema):
-                print("The graph isn't built yet. Build it with: topdeck graph build")
+            waiting = graph.not_ready(connection, schema)
+            if waiting:
+                print(waiting)
                 return 1
             counts = graph.count(connection, schema)
+            reach = graph.coverage(connection, schema)
+            read = graph.files_read(connection, schema)
+            left_out = graph.skipped(connection, schema)
+            by_method = graph.methods(connection, schema)
+            unlinked = graph.unlinked_tags(connection, schema)
     except (psycopg.Error, ValueError) as error:
         print(f"The graph could not be counted: {first_line(error)}")
         return 1
@@ -224,11 +275,35 @@ def count_graph(
     print("The graph holds:")
     for table in graph.THING_TABLES:
         print(f"  {counts[table]:>9,}  {table}")
-    print("\nIts links:")
-    for table in graph.LINK_TABLES:
+    print("\nIts official links:")
+    for table in graph.GIVEN_LINK_TABLES:
         print(f"  {counts[table]:>9,}  {table}")
+    print("\nIts community links:")
+    for table in graph.COMMUNITY_LINK_TABLES:
+        print(f"  {counts[table]:>9,}  {table}")
+    print(f"\nOf the {counts['cards']:,} cards, how many each source reaches:")
+    for name, cards in reach.items():
+        share = f" ({cards / counts['cards']:.1%})" if counts["cards"] else ""
+        print(f"  {cards:>9,}  {SAID.get(name, name)}{share}")
+    if left_out:
+        print("\nRead from the files but not loaded, and why:")
+        for what, reasons in left_out.items():
+            for reason, rows in reasons.items():
+                print(f"  {rows:>9,}  {what}: {reason}")
+    print("\nTags kept so the tag tree stays whole, though no loaded link uses them:")
+    for name, tags in unlinked.items():
+        print(f"  {tags:>9,}  {SAID.get(name, name)}")
 
-    found = {"snapshot": SNAPSHOT_DATE, "tables": counts}
+    found = {
+        "snapshot": SNAPSHOT_DATE,
+        "sources_snapshot": SOURCES_SNAPSHOT_DATE,
+        "tables": counts,
+        "coverage": reach,
+        "files_read": read,
+        "skipped": left_out,
+        "methods": by_method,
+        "unlinked_tags": unlinked,
+    }
     if write:
         results.parent.mkdir(parents=True, exist_ok=True)
         results.write_text(json.dumps(found, indent=2) + "\n", encoding="utf-8")
@@ -247,12 +322,14 @@ def count_graph(
         for table in sorted(set(counts) | set(tables_recorded))
         if counts.get(table) != tables_recorded.get(table)
     ]
-    if recorded.get("snapshot") != SNAPSHOT_DATE:
-        differences.append(f"snapshot: {SNAPSHOT_DATE}, recorded {recorded.get('snapshot')!r}")
+    for key in sorted(set(found) - {"tables"}):
+        if found[key] != recorded.get(key):
+            differences.append(f"{key}: counted {found[key]!r}, recorded {recorded.get(key)!r}")
     if differences:
-        print(f"\nThe graph does not match {results}:")
+        print("\nWhere it differs:")
         for difference in differences:
             print(f"  - {difference}")
+        print(f"\nThe graph does not match {results}.")
         return 1
     print(f"\nEvery number matches {results}.")
     return 0
@@ -273,8 +350,9 @@ def answer_2024(
         return 1
     try:
         with connection:
-            if not graph.is_built(connection, schema):
-                print("The graph isn't built yet. Build it with: topdeck graph build")
+            waiting = graph.not_ready(connection, schema)
+            if waiting:
+                print(waiting)
                 return 1
             found = answers_module.answer(connection, schema)
     except (psycopg.Error, ValueError, KeyError) as error:
@@ -313,11 +391,126 @@ def answer_2024(
         return 1
     problems = answers_module.differences(found, recorded)
     if problems:
-        print(f"\nThe answers do not match {results}:")
+        print("\nWhere it differs:")
         for problem in problems[:20]:
             print(f"  - {problem}")
+        print(f"\nThe answers do not match {results}.")
         return 1
     print(f"\nEvery answer matches {results}.")
+    return 0
+
+
+def sample_tags(
+    results: Path,
+    write: bool,
+    url: str | None = None,
+    schema: str = graph.SCHEMA,
+    table: Path | None = None,
+) -> int:
+    """Draw the 50 art tags to check by eye, and check the draw against the record."""
+    try:
+        connection = graph.connect(url)
+    except graph.DatabaseUnreachable as error:
+        print(error)
+        return 1
+    try:
+        with connection:
+            waiting = graph.not_ready(connection, schema)
+            if waiting:
+                print(waiting)
+                return 1
+            found = tags_module.sample(connection, schema)
+    except (psycopg.Error, ValueError, KeyError) as error:
+        print(f"The art tags could not be drawn: {first_line(error)}")
+        return 1
+
+    weights = ", ".join(
+        f"{sum(row['weight'] == weight for row in found['sample'])} {weight.replace('_', ' ')}"
+        for weight in graph.WEIGHTS
+    )
+    print(f"Drew {len(found['sample'])} art tags to check by eye: {weights}.")
+    if table is not None:
+        table.parent.mkdir(parents=True, exist_ok=True)
+        table.write_text(tags_module.table(found), encoding="utf-8")
+        print(f"The table to mark by hand is in {table}.")
+    kept = tags_module.public(found)
+    if write:
+        results.parent.mkdir(parents=True, exist_ok=True)
+        results.write_text(json.dumps(kept, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"\nRecorded in {results}.")
+        return 0
+    recorded, problem = read_record(results)
+    if problem:
+        print(f"\n{problem}")
+        return 1
+    if kept != recorded:
+        print(f"\nThe draw does not match {results}.")
+        return 1
+    print(f"\nThe draw matches {results}.")
+    return 0
+
+
+def score_tags(draw_record: Path, verdicts: Path, table: Path | None = None) -> int:
+    """Score my verdicts on the 50 drawn art tags, by weight and weighted overall.
+
+    With `table`, the verdicts are first read from the table I marked, and recorded in
+    `verdicts`, keyed by picture and tag. Without it, the recorded verdicts are scored."""
+    draw, problem = read_record(draw_record)
+    if problem:
+        print(problem)
+        return 1
+    if table is not None:
+        try:
+            marked = tags_module.read_table(draw, table.read_text(encoding="utf-8"))
+        except OSError:
+            print(f"Nothing was scored: there is no marked table at {table}.")
+            return 1
+        except (ValueError, KeyError, TypeError) as error:
+            print(f"The table at {table} could not be read: {first_line(error)}.")
+            return 1
+    elif not verdicts.is_file():
+        print("To score, mark the table and run: topdeck tags score --table <the table>")
+        print(f"Nothing was scored: no verdicts are recorded yet in {verdicts}.")
+        return 0
+    else:
+        marked, problem = read_record(verdicts)
+        if problem:
+            print(problem)
+            return 1
+    try:
+        found = tags_module.score(draw, marked)
+    except (ValueError, KeyError, TypeError) as error:
+        print(f"The verdicts could not be scored: {first_line(error)}.")
+        return 1
+    if table is not None:
+        verdicts.parent.mkdir(parents=True, exist_ok=True)
+        verdicts.write_text(json.dumps(marked, indent=2) + "\n", encoding="utf-8")
+        print(f"Read {len(marked['verdicts'])} verdicts from {table}, recorded in {verdicts}.\n")
+    print(f"Marked {found['marked']} of the {found['drawn']} drawn art tags:")
+    for weight, row in found["by_weight"].items():
+        judged = row["right"] + row["wrong"]
+        interval = (
+            f" (95% interval {row['share_low']:.0%} to {row['share_high']:.0%})" if judged else ""
+        )
+        unsure = f", {row['cant_tell']} can't tell" if row["cant_tell"] else ""
+        print(
+            f"  {tags_module.words(weight):12} {row['right']:>3} of {judged:>3} "
+            f"right{interval}{unsure}"
+        )
+    if found["overall"] is None:
+        print(f"\nThe score is not final: {found['drawn'] - found['marked']} are still unmarked.")
+        return 0
+    overall = found["overall"]
+    verdict = "clears" if found["clears_the_bar"] else "misses"
+    print(
+        f"\nWeighted by the art tags of each weight in the graph, the verdicts are worth "
+        f"about {overall['worth_labels']:.0f} labels. Marked can't tell, and left out: "
+        f"{found['cant_tell']}."
+    )
+    print(
+        f"{overall['share_right']:.1%} are right (95% interval {overall['share_low']:.0%} to "
+        f"{overall['share_high']:.0%}), which {verdict} the bar of {found['bar']:.0%}."
+    )
     return 0
 
 
@@ -335,9 +528,11 @@ def main(argv: list[str] | None = None) -> int:
         "--root", type=Path, default=Path("."), help="the repo's root (default: here)"
     )
 
-    cards = commands.add_parser("cards", help="fetch the pinned card files, or count the cards")
+    cards = commands.add_parser("cards", help="fetch Scryfall's pinned files, or count the cards")
     actions = cards.add_subparsers(dest="action", required=True)
-    fetch_parser = actions.add_parser("fetch", help="download the pinned card files")
+    fetch_parser = actions.add_parser(
+        "fetch", help="download the pinned card, rulings and tag files"
+    )
     fetch_parser.add_argument("--yes", action="store_true", help="agree to the download")
     count_parser = actions.add_parser(
         "count", help="apply the rule for what counts as a card and check the recorded count"
@@ -348,7 +543,8 @@ def main(argv: list[str] | None = None) -> int:
     graph_parser = commands.add_parser("graph", help="build the graph in PostgreSQL, or count it")
     graph_actions = graph_parser.add_subparsers(dest="action", required=True)
     build_parser = graph_actions.add_parser(
-        "build", help="load the cards, their printings and every given link"
+        "build",
+        help="load the cards, their printings, every given link, the rulings and the tags",
     )
     graph_count_parser = graph_actions.add_parser(
         "count", help="count every table and check the recorded counts"
@@ -356,7 +552,24 @@ def main(argv: list[str] | None = None) -> int:
     answers_parser = commands.add_parser(
         "answers", help="answer the three 2024 questions and check the recorded answers"
     )
-    for sub in (graph_count_parser, answers_parser):
+    tags_parser = commands.add_parser("tags", help="the art-tag check")
+    tags_actions = tags_parser.add_subparsers(dest="action", required=True)
+    sample_parser = tags_actions.add_parser(
+        "sample", help="draw the 50 art tags to check by eye, and check the recorded draw"
+    )
+    sample_parser.add_argument(
+        "--table", type=Path, help="also write the draw as a table to mark by hand, here"
+    )
+    score_parser = tags_actions.add_parser(
+        "score", help="score my verdicts on the drawn art tags, by weight and overall"
+    )
+    score_parser.add_argument(
+        "--table", type=Path, help="read the verdicts from this marked table, and record them"
+    )
+    commands.add_parser(
+        "figures", help="draw every chart from the recorded results, light and dark"
+    )
+    for sub in (graph_count_parser, answers_parser, sample_parser):
         sub.add_argument(
             "--write", action="store_true", help="record the result instead of checking it"
         )
@@ -369,6 +582,12 @@ def main(argv: list[str] | None = None) -> int:
         return ground(arguments.root)
     if arguments.command == "answers":
         return answer_2024(ANSWERS_RESULTS, ANSWERS_PAGE, arguments.write)
+    if arguments.command == "tags":
+        if arguments.action == "score":
+            return score_tags(SAMPLE_RESULTS, VERDICTS_RESULTS, arguments.table)
+        return sample_tags(SAMPLE_RESULTS, arguments.write, table=arguments.table)
+    if arguments.command == "figures":
+        return draw_figures()
     if arguments.command == "graph":
         if arguments.action == "build":
             return build_graph(arguments.data)
@@ -376,6 +595,24 @@ def main(argv: list[str] | None = None) -> int:
     if arguments.action == "fetch":
         return fetch_cards(arguments.data, arguments.yes)
     return count_cards(arguments.data, RESULTS, arguments.write)
+
+
+def draw_figures(root: Path = Path(".")) -> int:
+    """Draw every chart from the recorded results. Needs the figures extra."""
+    try:
+        from topdeck import figures
+    except ModuleNotFoundError as error:
+        if error.name != "matplotlib" and not (error.name or "").startswith("matplotlib."):
+            raise
+        print("Drawing needs matplotlib. Install it with: uv sync --extra figures")
+        return 1
+    try:
+        written = figures.draw_all(root)
+    except (OSError, ValueError) as error:
+        print(f"The charts were not drawn: {first_line(error)}")
+        return 1
+    print(f"Drew {len(written)} images into {figures.OUT}/ from the records in results/.")
+    return 0
 
 
 if __name__ == "__main__":

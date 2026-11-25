@@ -1,9 +1,16 @@
 -- TopDeck's graph: one table per kind of thing, one table per kind of link.
 --
 -- Run inside an empty schema with search_path set to it; graph.py does both.
--- Every link row carries its source (the Scryfall field it came from) and its method.
--- Every link here is 'given': read from a field, never guessed. Links extracted from
--- rules text arrive in a later phase with other methods.
+-- Every link row carries its source (the Scryfall field it came from) and its method:
+--
+--   given      read from an official field: Wizards' cards and rulings, as Scryfall
+--              publishes them. Never guessed.
+--   scryfall   a ruling written by Scryfall's own staff, not by Wizards.
+--   community  a label from Tagger, Scryfall's community tagging project. Wizards does
+--              not check these, and I have not found how Scryfall reviews them. They are
+--              kept apart, and no tag, checked or not, is ever an answer key.
+--
+-- Links extracted from rules text arrive in a later phase with a method of their own.
 --
 -- Columns marked DERIVED are worked out from other rows after loading. They are not
 -- read from any one Scryfall field, so they carry no source of their own.
@@ -75,6 +82,38 @@ CREATE TABLE printings (
     rarity           text NOT NULL,
     released_at      date NOT NULL,
     method           text NOT NULL
+);
+
+-- An official ruling on how a card works. Its link to its card is a column here, with
+-- its own source. The text stays in this database: it is never written to the repo.
+CREATE TABLE rulings (
+    ruling_id    integer PRIMARY KEY,  -- its place among the rulings kept, in the file's order
+    card_id      uuid NOT NULL REFERENCES cards,
+    card_source  text NOT NULL,
+    author       text NOT NULL CHECK (author IN ('wotc', 'scryfall')),
+    published_at date NOT NULL,
+    text         text NOT NULL,
+    method       text NOT NULL CHECK (method IN ('given', 'scryfall'))
+);
+
+-- A picture, as Scryfall names it. Several printings can share one picture.
+CREATE TABLE illustrations (
+    illustration_id uuid PRIMARY KEY
+);
+
+-- Tagger's labels. A tag can sit under broader tags; those links are below.
+CREATE TABLE art_tags (
+    tag_id      uuid PRIMARY KEY,
+    label       text NOT NULL UNIQUE,  -- "panorama", "easter egg", "dog"
+    slug        text NOT NULL UNIQUE,
+    description text
+);
+
+CREATE TABLE oracle_tags (
+    tag_id      uuid PRIMARY KEY,
+    label       text NOT NULL UNIQUE,  -- "sweeper", "punisher", "lifegain"
+    slug        text NOT NULL UNIQUE,
+    description text
 );
 
 -- ---------------------------------------------------------------- links from a card
@@ -182,6 +221,17 @@ CREATE TABLE face_supertype (
     FOREIGN KEY (card_id, position) REFERENCES faces
 );
 
+-- What Tagger's community says a card does. Never an answer key.
+CREATE TABLE card_oracle_tag (
+    card_id    uuid NOT NULL REFERENCES cards,
+    tag_id     uuid NOT NULL REFERENCES oracle_tags,
+    weight     text NOT NULL CHECK (weight IN ('weak', 'median', 'strong', 'very_strong')),
+    annotation text,
+    source     text NOT NULL,
+    method     text NOT NULL,
+    PRIMARY KEY (card_id, tag_id)
+);
+
 -- ---------------------------------------------------------------- links from a printing
 
 CREATE TABLE printing_artist (
@@ -190,6 +240,64 @@ CREATE TABLE printing_artist (
     source      text NOT NULL,
     method      text NOT NULL,
     PRIMARY KEY (printing_id, artist_id)
+);
+
+-- A printing's picture: position 0 for a card with one picture, or the face's position
+-- for a card with a picture on each face.
+CREATE TABLE printing_illustration (
+    printing_id     uuid NOT NULL REFERENCES printings,
+    position        smallint NOT NULL,
+    illustration_id uuid NOT NULL REFERENCES illustrations,
+    source          text NOT NULL,
+    method          text NOT NULL,
+    PRIMARY KEY (printing_id, position)
+);
+
+-- ---------------------------------------------------------------- links from a picture or a tag
+
+-- What Tagger's community says a picture shows. Never an answer key.
+CREATE TABLE illustration_art_tag (
+    illustration_id uuid NOT NULL REFERENCES illustrations,
+    tag_id          uuid NOT NULL REFERENCES art_tags,
+    weight          text NOT NULL CHECK (weight IN ('weak', 'median', 'strong', 'very_strong')),
+    annotation      text,
+    source          text NOT NULL,
+    method          text NOT NULL,
+    PRIMARY KEY (illustration_id, tag_id)
+);
+
+-- A tag and a broader tag it sits under: "dog" under "canine".
+CREATE TABLE art_tag_parent (
+    tag_id    uuid NOT NULL REFERENCES art_tags,
+    parent_id uuid NOT NULL REFERENCES art_tags,
+    source    text NOT NULL,
+    method    text NOT NULL,
+    PRIMARY KEY (tag_id, parent_id)
+);
+
+CREATE TABLE oracle_tag_parent (
+    tag_id    uuid NOT NULL REFERENCES oracle_tags,
+    parent_id uuid NOT NULL REFERENCES oracle_tags,
+    source    text NOT NULL,
+    method    text NOT NULL,
+    PRIMARY KEY (tag_id, parent_id)
+);
+
+-- ---------------------------------------------------------------- the load's own report
+
+-- How many entries the build read from each of the rulings and tag files.
+CREATE TABLE files_read (
+    what text PRIMARY KEY,
+    rows integer NOT NULL
+);
+
+-- What the build read but did not load, and why: a ruling for a card that doesn't count,
+-- a tag on a picture no counted printing has. Each number is counted once per build.
+CREATE TABLE skipped (
+    what   text NOT NULL,
+    reason text NOT NULL,
+    rows   integer NOT NULL,
+    PRIMARY KEY (what, reason)
 );
 
 -- ---------------------------------------------------------------- indexes
@@ -207,3 +315,7 @@ CREATE INDEX printings_by_card           ON printings (card_id);
 CREATE INDEX printings_by_set            ON printings (set_code);
 CREATE INDEX printing_artist_by_artist   ON printing_artist (artist_id);
 CREATE INDEX cards_by_name               ON cards (name);
+CREATE INDEX rulings_by_card             ON rulings (card_id);
+CREATE INDEX card_oracle_tag_by_tag      ON card_oracle_tag (tag_id);
+CREATE INDEX printing_illustration_by_illustration ON printing_illustration (illustration_id);
+CREATE INDEX illustration_art_tag_by_tag ON illustration_art_tag (tag_id);

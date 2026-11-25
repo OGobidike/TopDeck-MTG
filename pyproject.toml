@@ -8,6 +8,12 @@ dependencies = [
     "psycopg[binary]>=3.2",
 ]
 
+[project.optional-dependencies]
+# Only for drawing the charts in docs/images; nothing else needs it.
+figures = [
+    "matplotlib>=3.9",
+]
+
 [project.scripts]
 topdeck = "topdeck.cli:main"
 
@@ -36,4 +42,5 @@ select = ["E", "W", "F", "I"]
 testpaths = ["tests"]
 markers = [
     "db: needs a local PostgreSQL, named by TOPDECK_DATABASE_URL; skipped without one",
+    "figures: needs matplotlib, from the figures extra; skipped without it",
 ]

@@ -2,7 +2,7 @@
 
 In 2024 I started TopDeck as a notebook with three questions about Magic: The Gathering cards. It printed four counts and stopped before answering any of them. This page answers all three from TopDeck's graph, built from Scryfall's card files of 2026-11-21.
 
-`uv run topdeck answers` works every number on this page out again and checks it against [`results/answers_2024.json`](../results/answers_2024.json).
+`uv run topdeck answers` works every number on this page out again and checks it against [`results/answers_2024.json`](../results/answers_2024.json). `uv run topdeck figures` draws the charts from the same record.
 
 ## 📏 How to read the numbers
 
@@ -27,30 +27,35 @@ In 2024 I started TopDeck as a notebook with three questions about Magic: The Ga
 - **569 of 669** Elf creatures are green: 85.1% (82.2% to 87.6%). Of all 18,080 creatures, 23.9% are green, so the lift is **3.55** (3.43 to 3.66).
 - **453 of 512** Goblin creatures are red: 88.5% (85.4% to 91.0%). Of all creatures, 23.1% are red, so the lift is **3.83** (3.70 to 3.94).
 
-Here are the 20 commonest creature subtypes, each with the colour it is most tied to. The lift compares each with all the creatures.
+Here are the 20 commonest creature subtypes, each with the colour it is most tied to, ordered by lift as in the chart. The lift compares each with all the creatures.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/lift-by-subtype-dark.png">
+  <img alt="Elves are green 3.6 times as often as creatures in general, and Goblins red 3.8 times as often. A dot for each of the 20 commonest creature subtypes." src="images/lift-by-subtype-light.png">
+</picture>
 
 | Subtype | Creatures | Colour | Share | Lift |
 | --- | --- | --- | --- | --- |
-| Human | 4,573 | White | 39.6% | 1.65 (1.60 to 1.71) |
-| Warrior | 1,274 | Red | 44.7% | 1.94 (1.82 to 2.06) |
-| Wizard | 1,183 | Blue | 68.1% | 3.12 (3.00 to 3.24) |
-| Soldier | 1,082 | White | 68.3% | 2.85 (2.73 to 2.96) |
-| Spirit | 672 | White | 34.5% | 1.44 (1.30 to 1.59) |
-| Elf | 669 | Green | 85.1% | 3.55 (3.43 to 3.66) |
-| Cleric | 656 | White | 71.0% | 2.97 (2.82 to 3.10) |
-| Elemental | 632 | Red | 44.0% | 1.91 (1.74 to 2.07) |
-| Zombie | 601 | Black | 84.5% | 3.71 (3.57 to 3.83) |
-| Rogue | 584 | Black | 45.2% | 1.98 (1.81 to 2.16) |
-| Beast | 533 | Green | 56.1% | 2.34 (2.17 to 2.52) |
-| Goblin | 512 | Red | 88.5% | 3.83 (3.70 to 3.94) |
-| Knight | 493 | White | 62.3% | 2.60 (2.42 to 2.77) |
-| Shaman | 479 | Red | 51.1% | 2.22 (2.02 to 2.41) |
-| Phyrexian | 441 | Black | 42.2% | 1.85 (1.65 to 2.05) |
-| Bird | 431 | Blue | 44.8% | 2.05 (1.84 to 2.27) |
-| Vampire | 427 | Black | 80.3% | 3.52 (3.35 to 3.68) |
-| Dragon | 420 | Red | 59.8% | 2.59 (2.38 to 2.79) |
 | Druid | 387 | Green | 94.8% | 3.96 (3.85 to 4.04) |
+| Goblin | 512 | Red | 88.5% | 3.83 (3.70 to 3.94) |
+| Zombie | 601 | Black | 84.5% | 3.71 (3.57 to 3.83) |
+| Elf | 669 | Green | 85.1% | 3.55 (3.43 to 3.66) |
+| Vampire | 427 | Black | 80.3% | 3.52 (3.35 to 3.68) |
+| Wizard | 1,183 | Blue | 68.1% | 3.12 (3.00 to 3.24) |
+| Cleric | 656 | White | 71.0% | 2.97 (2.82 to 3.10) |
+| Soldier | 1,082 | White | 68.3% | 2.85 (2.73 to 2.96) |
+| Knight | 493 | White | 62.3% | 2.60 (2.42 to 2.77) |
+| Dragon | 420 | Red | 59.8% | 2.59 (2.38 to 2.79) |
+| Beast | 533 | Green | 56.1% | 2.34 (2.17 to 2.52) |
 | Cat | 341 | White | 54.5% | 2.28 (2.06 to 2.49) |
+| Shaman | 479 | Red | 51.1% | 2.22 (2.02 to 2.41) |
+| Bird | 431 | Blue | 44.8% | 2.05 (1.84 to 2.27) |
+| Rogue | 584 | Black | 45.2% | 1.98 (1.81 to 2.16) |
+| Warrior | 1,274 | Red | 44.7% | 1.94 (1.82 to 2.06) |
+| Elemental | 632 | Red | 44.0% | 1.91 (1.74 to 2.07) |
+| Phyrexian | 441 | Black | 42.2% | 1.85 (1.65 to 2.05) |
+| Human | 4,573 | White | 39.6% | 1.65 (1.60 to 1.71) |
+| Spirit | 672 | White | 34.5% | 1.44 (1.30 to 1.59) |
 
 The tightest tie in the table is Druid to green (lift 3.96). The loosest is Spirit to white (lift 1.44).
 
@@ -59,6 +64,11 @@ The tightest tie in the table is Druid to green (lift 3.96). The loosest is Spir
 **Yes.** 2,378 artists are credited on 97,969 printings. Half of them have 7 printings or fewer, while the top 1% (24 artists) hold **16.3%** of all printings.
 
 **Basic lands shape the top of this list.** John Avon has the most printings, 1,216, and 434 of them are basic lands. Leave basic lands out and Kev Walker leads with 1,126, while John Avon ranks 3. Counted the 2024 way, one printing per card, John Avon ranks 18. Of all 97,969 printings, 3,888 are basic lands, reprinted in nearly every set, so an artist who painted many of them climbs the count quickly.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/artists-basic-lands-dark.png">
+  <img alt="The top artists ranked with basic lands and without them: Kev Walker rises to first and John Avon falls to 3." src="images/artists-basic-lands-light.png">
+</picture>
 
 | Artist | Printings | Of them basic lands | Different cards | Rank without basic lands | Rank the 2024 way |
 | --- | --- | --- | --- | --- | --- |
@@ -122,7 +132,12 @@ An artist is counted as credited on the card, so two artists who share a credit 
 
 ## 3. Which subtypes hide inside which colours?
 
-Of the 155 subtypes with at least 30 cards, these 15 are tied most strongly to one colour. This table compares against all 32,495 cards, not only creatures, so its subtypes include kinds that aren't creatures, such as Auras and Sagas.
+Of the 155 subtypes with at least 30 cards, these 15 are tied most strongly to one colour. This chart and table compare against all 32,495 cards, not only creatures, so their subtypes include kinds that aren't creatures, such as Auras and Sagas.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/subtypes-by-colour-dark.png">
+  <img alt="All 73 Vedalken cards are blue and all 57 Dryad cards green; these 15 subtypes are 89% to 100% one colour, against 20% to 21% of all cards." src="images/subtypes-by-colour-light.png">
+</picture>
 
 | Subtype | Cards | Colour | Share | Lift |
 | --- | --- | --- | --- | --- |

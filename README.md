@@ -13,14 +13,19 @@ I'm building it for two kinds of people:
 - **Anyone deciding whether their assistant needs a graph.** The results will show which kinds of question it helps, which it doesn't, and what plain filters already reach.
 - **Anyone learning to test AI systems.** Every score here will be rerun by one command.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/what-topdeck-knows-dark.png">
+  <img alt="Everything TopDeck knows hangs on the 32,495 cards that count: five pinned files, one rule, one graph, with official and community sources kept apart." src="docs/images/what-topdeck-knows-light.png">
+</picture>
+
 ## 🗺️ Where it stands
 
-TopDeck can't take a free question yet. The cards are counted, the graph is built, and the three questions my 2024 notebook asked are [answered](docs/2024-QUESTIONS.md).
+TopDeck can't take a free question yet. The cards are counted, the graph is built with the official rulings and the community tags beside it, and the three questions my 2024 notebook asked are [answered](docs/2024-QUESTIONS.md). One job is left in Phase 1: my check of 50 art tags.
 
 | Phase | What it ships | Status |
 | --- | --- | --- |
 | 0. Ground | The [blueprint](docs/BLUEPRINT.md), tooling, CI, the 2024 code set aside untouched, and [108 questions I chose](questions/chosen.md) before the graph had a layout | 🔨 Under way: the 108 are chosen |
-| 1. The cards | The pinned card files, the rule for what counts as a card, the cards in PostgreSQL with every given link, and my three 2024 questions answered | 🔨 Under way: the graph and the 2024 answers are in; the tags review is left |
+| 1. The cards | The pinned card files, the rule for what counts as a card, the cards in PostgreSQL with every given link, the rulings and the community tags beside them, and my three 2024 questions answered | 🔨 Under way: the graph, the rulings, the tags and the 2024 answers are in; my check of 50 art tags is left |
 | 2. The questions | About 540 questions, most with an answer a query can prove | Planned |
 | 3. Search | The model alone, search, and search with filters | Planned |
 | 4. The graph route | A model that writes read-only queries, inside a fence | Planned |
@@ -68,30 +73,56 @@ The card files are pinned to Scryfall's files of 2026-11-21 by their SHA-256 fin
 
 ## 🕸️ The graph
 
-The cards that count, their real printings, and the given links the [blueprint](docs/BLUEPRINT.md#the-graph) lists live in PostgreSQL as a graph: one table for each kind of thing, and one table for each kind of link between two things. Some facts Scryfall gives are not loaded yet, because nothing needs them: loyalty, defense, colour indicator, produced mana, flavour text and the artist of each face.
+The cards that count, their real printings, the given links the [blueprint](docs/BLUEPRINT.md#the-graph) lists, and the rulings and tags beside them live in PostgreSQL as a graph: one table for each kind of thing, and one table for each kind of link between two things. Some facts Scryfall gives are not loaded yet, because nothing needs them: loyalty, defense, colour indicator, produced mana, flavour text and the artist of each face.
 
-| Things | Rows | | Links | Rows |
+| Things | Rows | | Official links | Rows |
 | --- | --- | --- | --- | --- |
 | `cards` | 32,495 | | `card_colour` | 33,763 |
 | `printings` | 97,976 | | `card_colour_identity` | 36,690 |
-| `faces` | 1,694 | | `card_type` | 34,130 |
-| `artists` | 2,378 | | `card_subtype` | 34,038 |
-| `sets` | 626 | | `card_supertype` | 4,456 |
-| `keywords` | 861 | | `card_keyword` | 22,889 |
-| `subtypes` | 470 | | `card_legality` | 372,541 |
-| `formats` | 23 | | `printing_artist` | 97,969 |
-| `types` | 10 | | `face_colour` | 1,010 |
-| `colours` | 5 | | `face_type` | 1,764 |
-| `supertypes` | 4 | | `face_subtype` | 1,784 |
-| | | | `face_supertype` | 334 |
+| `rulings` | 77,164 | | `card_type` | 34,130 |
+| `illustrations` | 49,341 | | `card_subtype` | 34,038 |
+| `faces` | 1,694 | | `card_supertype` | 4,456 |
+| `artists` | 2,378 | | `card_keyword` | 22,889 |
+| `sets` | 626 | | `card_legality` | 372,541 |
+| `keywords` | 861 | | `printing_artist` | 97,969 |
+| `subtypes` | 470 | | `printing_illustration` | 99,306 |
+| `formats` | 23 | | `face_colour` | 1,010 |
+| `types` | 10 | | `face_type` | 1,764 |
+| `colours` | 5 | | `face_subtype` | 1,784 |
+| `supertypes` | 4 | | `face_supertype` | 334 |
 
-That is **641,368 links** in all. Three things hold:
+| Community things | Rows | | Community links | Rows |
+| --- | --- | --- | --- | --- |
+| `art_tags` | 11,863 | | `illustration_art_tag` | 473,401 |
+| `oracle_tags` | 4,607 | | `card_oracle_tag` | 215,851 |
+| | | | `art_tag_parent` | 20,349 |
+| | | | `oracle_tag_parent` | 4,633 |
 
-- **Every link says where it came from:** the Scryfall field it was read from, such as `default_cards.artist`, and how. All of these are *given*, read straight from a field. Links pulled out of rules text come in a later phase, marked as such. Two columns are *derived*, worked out after loading rather than read from a field: each card's first printing date, and each set's earliest printing in the graph.
+That is **1,454,908 links** in all: 740,674 official and 714,234 from the community. Of the community ones, 689,252 tag a card or a picture, and 24,982 tie a tag to its parent tag. Three things hold:
+
+- **Every link says where it came from:** the Scryfall field it was read from, such as `default_cards.artist`, and how. The official links are *given*, read straight from a field. Rulings are official too, and each links to its card through a column of its own, outside the link count; they are *given*, except the 34 Scryfall's own staff wrote, which say `scryfall`. Tags say `community`. Links pulled out of rules text come in a later phase, marked as such. Two columns are *derived*, worked out after loading rather than read from a field: each card's first printing date, and each set's earliest printing in the graph.
 - **Only real printings of cards that count are loaded:** on paper, in an ordinary set. That is why the graph holds 97,976 printings and not all 120,211.
 - **Building is safe to repeat.** The graph is loaded beside the live one and swapped in only when the whole load has succeeded. If any step fails, the old graph stands. If anything else has been built on the old graph, the build stops rather than destroy it.
 
 The layout is one file, [`schema.sql`](src/topdeck/sql/schema.sql). `uv run topdeck graph count` counts every table and checks it against [`results/graph.json`](results/graph.json).
+
+## 📚 Rulings and tags
+
+Three more of Scryfall's files, pinned on 2026-11-22, go into the graph in the same build as the cards. They are not the same kind of fact, and the graph keeps them apart.
+
+- **Rulings are official.** Wizards of the Coast writes them to say how a card works. Scryfall's file holds 80,928, and 69 of them were written by Scryfall's own staff; the 34 of those on cards that count are marked as Scryfall's, not Wizards'. The text of a ruling stays in the database and never enters this repo.
+- **Oracle Tags and Art Tags come from the community.** Volunteers on Scryfall Tagger label what a card does and what its picture shows. Wizards does not check them, and I have not found how Scryfall reviews them. Every link they make says `community`.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/coverage-dark.png">
+  <img alt="Nearly every card carries community tags, but only 6 in 10 have a ruling." src="docs/images/coverage-light.png">
+</picture>
+
+- **How far each reaches.** 19,568 of the 32,495 cards (60.2%) have at least one ruling. 32,297 (99.4%) have an Oracle Tag, and 32,495 (100%) have a picture with an Art Tag on at least one printing.
+- **Only links that touch a card that counts are loaded,** and every ruling and link left out is counted with its reason in [`results/graph.json`](results/graph.json): 3,721 rulings for cards that don't count and 43 exact repeats, 25,385 Oracle Tag links on cards that don't count, and 38,761 Art Tag links on pictures that no real printing of a counted card has. Every tag is kept so the tag tree stays whole, though 505 Oracle Tags and 775 Art Tags link to nothing that counts; the record counts those too.
+- **Tags never grade themselves.** No tag, checked or not, is ever the answer key for any score. A tag may help a system find cards, and that is all.
+- **The art tags wait for my check.** `uv run topdeck tags sample` draws 50 tagged pictures, the same 50 every time: 10 weak, 20 median, 10 strong and 10 very strong, by Tagger's own weights, which seem to say how prominent the thing is in the picture. I will look at each picture on Scryfall and mark its tag right, wrong or can't tell, by [rules I wrote before marking](docs/BLUEPRINT.md#the-graph). `uv run topdeck tags score` then says how often Tagger is right, for each weight and overall, each with its interval. I set the bar before marking: 90% right overall, weighted by how many links of each weight the graph holds. The check measures Tagger; it does not promote any tag. The draw is in [`results/art_tag_sample.json`](results/art_tag_sample.json), without the notes volunteers wrote on some labels.
+- **The overall share rests almost wholly on 20 labels.** 97.4% of the art-tag links are median, so the 20 median labels carry nearly all the weight. The overall is worth about 21 labels, its interval is wide, and it clears the bar only if at most 2 of those 20 are wrong. The other weights, 10 labels each, only hint at whether Tagger's weights mean anything.
 
 ## 🥊 The contest
 
@@ -129,7 +160,7 @@ That code and its README are still here, byte for byte, in [`notebooks/2024-orig
 | Duplicate names are dropped before artists are counted | If the file holds one row per printing, a card printed five times by five artists keeps one, and the artist counts are wrong | Artists are counted per printing |
 | Counts only | A count can't say whether Elves are green more often than creatures in general | Counts with lift (how many times more often than among all the cards compared) and its interval |
 
-The graph now answers all three, on [their own page](docs/2024-QUESTIONS.md):
+The graph now answers all three, on [their own page](docs/2024-QUESTIONS.md), with a chart for each question:
 
 - **Elves are green.** 569 of 669 Elf creatures are green, **3.55 times** as often as creatures in general.
 - **Goblins are red.** 453 of 512 are red, **3.83 times** as often as creatures in general.
@@ -144,14 +175,14 @@ You need [uv](https://docs.astral.sh/uv/).
 ```bash
 git clone https://github.com/OGobidike/TopDeck-MTG.git
 cd TopDeck-MTG
-uv sync
+uv sync --extra figures
 uv run pytest
 uv run topdeck ground
 ```
 
 `topdeck ground` checks that the 2024 files are untouched, counts the chosen questions and checks each one is well formed.
 
-To count the cards yourself, fetch the two pinned files. The first command only says what it would download (106.8 MB, kept packed); the second downloads.
+To count the cards yourself, fetch the five pinned files: the two card files, the rulings and the two tag files. The first command only says what it would download (131.9 MB, kept packed); the second downloads and checks each file's fingerprint.
 
 ```bash
 uv run topdeck cards fetch
@@ -159,7 +190,7 @@ uv run topdeck cards fetch --yes
 uv run topdeck cards count
 ```
 
-Scryfall replaces its files daily, so the pinned ones may one day no longer be there. If so, the fetch says so and stops; the recorded counts are still in `results/cards.json`.
+Scryfall replaces its files daily, so the pinned ones may one day no longer be there. If so, the fetch says so and stops. The graph and the 2024 answers need all five files, so they could not be rebuilt either; the recorded results stay in `results/cards.json`, `results/graph.json` and `results/answers_2024.json`, and the charts are drawn from those alone.
 
 To build the graph and answer the 2024 questions, start the database first. You need [Docker](https://docs.docker.com/get-docker/).
 
@@ -168,13 +199,29 @@ docker compose up -d --wait
 uv run topdeck graph build
 uv run topdeck graph count
 uv run topdeck answers
+uv run topdeck tags sample
 ```
 
-Each command ends on one plain line that says whether it worked. The database is a local one for development: it listens on this machine only, on port 5544, and holds nothing but public card data. To use another PostgreSQL, set `TOPDECK_DATABASE_URL`. The tests use the same database, and skip their database part when it isn't running; set `TOPDECK_REQUIRE_DB=1` to make that a failure instead, as CI does.
+A graph built before the rulings and tags came in must be built again: `graph count`, `answers` and `tags sample` say so, and `graph build` replaces it.
+
+To check the art tags, write the draw as a table, mark the last column of each row `right`, `wrong` or `can't tell`, and score it. The table shows the notes volunteers wrote on some labels, so it goes in `marking/`, which Git ignores. The score records the verdicts in `results/art_tag_verdicts.json`, keyed by picture and tag, with no notes, and `tags score` alone scores them again.
+
+```bash
+uv run topdeck tags sample --table marking/art-tags.md
+uv run topdeck tags score --table marking/art-tags.md
+```
+
+The charts are drawn from the records in `results/` alone, so they need no database, only the optional `figures` extra that the first `uv sync` above installs. A plain `uv sync` takes it away again.
+
+```bash
+uv run topdeck figures
+```
+
+Each command ends on one plain line that says whether it worked. The database is a local one for development: it listens on this machine only, on port 5544, and holds nothing but public card data. To use another PostgreSQL, set `TOPDECK_DATABASE_URL`. The tests use the same database, and skip their database part when it isn't running; set `TOPDECK_REQUIRE_DB=1` to make that a failure instead, as CI does. Without the `figures` extra the chart tests skip in the same way, and fail where a database is required.
 
 ## ✅ Tested
 
-- ✅ **94 tests** (121 cases), run by CI on every push and pull request
+- ✅ **150 tests**, run by CI on every push and pull request
 - ✅ **The 2024 files are pinned by their SHA-256 fingerprints.** No formatter may touch them, and Git may not rewrite their line endings; a test covers each
 - ✅ **Every rule for a chosen question is tested against the fault it exists to catch**: a missing question mark, a repeat, a gap in the numbering, a fragment
 - ✅ **The rule for what counts as a card is tested reason by reason,** on cards I invented, so no real card text sits in the tests
@@ -182,8 +229,11 @@ Each command ends on one plain line that says whether it worked. The database is
 - ✅ **A download that isn't the pinned file is refused,** and nothing of it is kept
 - ✅ **The graph is tested against a real PostgreSQL,** in CI too, where a missing database fails the run instead of skipping it: the link counts worked out by hand, where every link says it came from, the front-face and split-card rules and the keyword exception, a build that fails even after the old graph was dropped, and a build that stops rather than destroy something built on the graph
 - ✅ **The 2024 answers are tested on invented cards,** where the lift and its interval can be worked out by hand. They are checked exactly: nothing in them is random
+- ✅ **The rulings and tags are tested on invented ones,** with no real ruling text: each new table, the exact source and method of every link, and the count of everything left out and why
+- ✅ **The art-tag draw is tested for coming out the same every time,** label by label against its seeded hash, for keeping to its share of each weight and for keeping volunteers' notes out of the record. The score is tested on invented verdicts: read back from a marked table, refused when a row was edited, with can't-tell left out and the overall's interval worked out by hand
+- ✅ **The charts are drawn in the tests from the records alone,** twice, and must come out byte for byte the same, with no text under 12 points, out of the frame or on top of other text. The images in `docs/images` must match them pixel for pixel, so a chart can't fall behind its record. CI installs the `figures` extra so these run there too
 - ✅ **No test can reach the internet.** A fixture fails any test that tries, so later phases can't spend money by accident
-- ✅ **This README is tested too**: its test count, its phase table and every number above must match the repo, the blueprint and the records. The 2024 answers page is written from its record, never by hand
+- ✅ **This README is tested too**: its test count, its phase table, the numbers it takes from the records, the size and number of the pinned files, and every chart it shows, in light and dark, must match the repo, the blueprint and the records. The 2024 answers page is written from its record, never by hand
 - ✅ `ruff check` and `ruff format --check` pass
 
 ## 🗂️ Repo map
@@ -194,6 +244,7 @@ Each command ends on one plain line that says whether it worked. The database is
 | [`questions/chosen.md`](questions/chosen.md) | The 108 questions I chose before the graph had a layout, and why |
 | [`src/topdeck/`](src/topdeck) | The package and the `topdeck` command |
 | [`docs/2024-QUESTIONS.md`](docs/2024-QUESTIONS.md) | My three 2024 questions, answered |
+| [`docs/images/`](docs/images) | The charts, light and dark, drawn by `topdeck figures` from the records |
 | [`src/topdeck/sql/schema.sql`](src/topdeck/sql/schema.sql) | The graph's layout |
 | [`docker-compose.yml`](docker-compose.yml) | The local database |
 | [`results/`](results) | The recorded counts and answers, each reproduced by one command |
@@ -206,12 +257,13 @@ Each command ends on one plain line that says whether it worked. The database is
 - **Part of the result is known in advance.** Search with filters is in the contest so the graph gets no credit for what filters already do.
 - **Models have read about Magic.** The plan tests for that memory with newer cards and with invented ones; it can't remove it.
 - **Every hand label is mine.** I measure how often I agree with myself; nobody else checks me.
+- **The tags are only as good as the volunteers who wrote them.** Tagger has tagged nearly every picture, which is why every card has an art tag: the 100% says how busy Tagger is, not how right. Until my check of 50 art tags is done, I don't know how often they are right. Oracle Tags are not checked; they serve only as a second opinion beside my effect labels.
 
 The blueprint lists the rest, and what was still unchecked when the plan was written.
 
 ## 🙏 Credits
 
-- **The cards** will come from [Scryfall](https://scryfall.com)'s free bulk files. TopDeck uses card text and facts only, and no card images.
+- **The cards and the rulings** come from [Scryfall](https://scryfall.com)'s free bulk files, and **the tags** from [Scryfall Tagger](https://tagger.scryfall.com), its community project. TopDeck uses card text and facts only, and no card images.
 - **The idea** is inspired by Knowledge Augmented Generation ([arXiv 2409.13731](https://arxiv.org/abs/2409.13731)). TopDeck is not a copy of that paper's method.
 - **My other projects** it builds on: [The Disease Division](https://github.com/OGobidike/disease-division) for the scoring, and [Morning Manna](https://github.com/OGobidike/Morning-Manna) for the stack.
 - I build with an AI pair-programmer, and I review, test and run every change myself.

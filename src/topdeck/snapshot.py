@@ -1,7 +1,10 @@
-"""The card files: where they come from, how big they are, and their fingerprints.
+"""Scryfall's files: where they come from, how big they are, and their fingerprints.
 
 Scryfall rebuilds its bulk files every 12 to 24 hours, so a count is only repeatable
-against one pinned download. This module names that download and refuses any other.
+against one pinned download. This module names each download and refuses any other.
+
+Two snapshots are pinned. The card files are of 2026-11-21. The rulings and the two
+community tag files were added a day later, so they are of 2026-11-22.
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ from pathlib import Path
 from topdeck import __version__
 
 SNAPSHOT_DATE = "2026-11-21"
+SOURCES_SNAPSHOT_DATE = "2026-11-22"
 DATA_DIR = Path("data")
 # Scryfall asks every program to name itself.
 USER_AGENT = f"TopDeck-MTG/{__version__} (+https://github.com/OGobidike/TopDeck-MTG)"
@@ -32,6 +36,7 @@ class BulkFile:
     url: str
     packed_bytes: int
     sha256: str
+    snapshot: str = SNAPSHOT_DATE
 
 
 ORACLE_CARDS = BulkFile(
@@ -50,6 +55,39 @@ DEFAULT_CARDS = BulkFile(
 )
 FILES = (ORACLE_CARDS, DEFAULT_CARDS)
 
+# The official rulings: written by Wizards of the Coast, except a few that Scryfall's
+# own staff wrote and marks as theirs.
+RULINGS = BulkFile(
+    name="Rulings",
+    filename="rulings-20261122100032.jsonl.gz",
+    url="https://data.scryfall.io/rulings/rulings-20261122100032.jsonl.gz",
+    packed_bytes=5_508_481,
+    sha256="a79e07a6aeee59b115e8ca3fc9f470f94fa08ccb3eca7749e3e8777100d092d1",
+    snapshot=SOURCES_SNAPSHOT_DATE,
+)
+# Community labels from Tagger, Scryfall's tagging project: what a card does, and what
+# its picture shows. Wizards does not check them, and I have not found how Scryfall
+# reviews them. They are kept apart from the official facts, and no tag, checked or not,
+# is ever an answer key.
+ORACLE_TAGS = BulkFile(
+    name="Oracle Tags",
+    filename="oracle-tags-20261122100042.jsonl.gz",
+    url="https://data.scryfall.io/oracle-tags/oracle-tags-20261122100042.jsonl.gz",
+    packed_bytes=6_129_472,
+    sha256="7eb9f7048a6b1703626bac4b8d4b5c0a7a0f2261d617066d305d23a9089a2208",
+    snapshot=SOURCES_SNAPSHOT_DATE,
+)
+ART_TAGS = BulkFile(
+    name="Art Tags",
+    filename="art-tags-20261122100127.jsonl.gz",
+    url="https://data.scryfall.io/art-tags/art-tags-20261122100127.jsonl.gz",
+    packed_bytes=13_470_173,
+    sha256="a65870959dc9368b99ff61540aa0e98965e4058681267b7072fb95ba1a1e2965",
+    snapshot=SOURCES_SNAPSHOT_DATE,
+)
+SOURCE_FILES = (RULINGS, ORACLE_TAGS, ART_TAGS)
+ALL_FILES = FILES + SOURCE_FILES
+
 
 def fingerprint(path: Path) -> str:
     """The SHA-256 of a file, read in pieces so a large file never fills memory."""
@@ -65,7 +103,7 @@ def verify(path: Path, expected: BulkFile) -> None:
     found = fingerprint(path)
     if found != expected.sha256:
         raise ValueError(
-            f"{path.name} is not the pinned {expected.name} file of {SNAPSHOT_DATE}: "
+            f"{path.name} is not the pinned {expected.name} file of {expected.snapshot}: "
             f"its SHA-256 is {found}, and the pin is {expected.sha256}"
         )
 

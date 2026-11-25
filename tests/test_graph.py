@@ -34,6 +34,15 @@ EXPECTED = {
     "face_subtype": 6,
     "face_supertype": 0,
     "printing_artist": 9,
+    "rulings": 4,
+    "illustrations": 8,
+    "art_tags": 3,
+    "oracle_tags": 3,
+    "printing_illustration": 9,
+    "card_oracle_tag": 4,
+    "illustration_art_tag": 5,
+    "art_tag_parent": 1,
+    "oracle_tag_parent": 1,
 }
 
 
@@ -66,6 +75,15 @@ SOURCES = {
     },
     "face_supertype": set(),
     "printing_artist": {"default_cards.artist"},
+    "printing_illustration": {
+        "default_cards.illustration_id",
+        "default_cards.card_faces[0].illustration_id",
+        "default_cards.card_faces[1].illustration_id",
+    },
+    "card_oracle_tag": {"oracle_tags.taggings.oracle_id"},
+    "illustration_art_tag": {"art_tags.taggings.illustration_id"},
+    "art_tag_parent": {"art_tags.parent_ids"},
+    "oracle_tag_parent": {"oracle_tags.parent_ids"},
 }
 
 
@@ -75,20 +93,21 @@ def test_every_link_says_exactly_where_it_came_from(invented_graph):
     for table, expected in SOURCES.items():
         rows = ask(connection, schema, f"SELECT DISTINCT source, method FROM {table}")
         assert {source for source, _ in rows} == expected, table
-        assert {method for _, method in rows} <= {"given"}, table
+        method = "community" if table in graph.COMMUNITY_LINK_TABLES else "given"
+        assert {found for _, found in rows} <= {method}, table
     printing_links = ask(
         connection, schema, "SELECT DISTINCT card_source, set_source, method FROM printings"
     )
     assert printing_links == [("default_cards.oracle_id", "default_cards.set", "given")]
 
 
-def test_building_twice_leaves_one_graph_not_two(invented_graph, card_files):
+def test_building_twice_leaves_one_graph_not_two(invented_graph, card_files, source_files):
     connection, schema, counts = invented_graph
     folder, oracle, printings_file = card_files
     cards, _ = load_cards(folder, oracle, printings_file)
-    again = graph.build(
-        connection, cards, graph.read_printings(folder, cards, printings_file), schema
-    )
+    printings = graph.read_printings(folder, cards, printings_file)
+    sources = graph.read_sources(folder, cards, printings, source_files)
+    again = graph.build(connection, cards, printings, schema, sources)
     connection.commit()
     assert again == counts == graph.count(connection, schema)
     leftovers = ask(
@@ -316,15 +335,28 @@ def test_a_build_refuses_the_schemas_postgresql_keeps(database_url, name):
             graph.build(connection, [], [], name)
 
 
-def test_the_build_command_ends_on_a_plain_verdict(card_files, database_url, schema, capsys):
+def test_the_build_command_ends_on_a_plain_verdict(
+    card_files, source_files, database_url, schema, capsys
+):
     folder, oracle, printings_file = card_files
-    assert build_graph(folder, database_url, schema, (oracle, printings_file)) == 0
+    assert build_graph(folder, database_url, schema, (oracle, printings_file), source_files) == 0
     last = capsys.readouterr().out.strip().splitlines()[-1]
-    assert last == "The graph is built: 8 cards, 9 printings and 80 links."
+    assert last == (
+        "The graph is built: 8 cards, 9 printings, 4 rulings, 89 official links and "
+        "11 community ones."
+    )
+
+
+def test_the_build_command_asks_for_files_it_lacks(card_files, database_url, schema, capsys):
+    folder, oracle, printings_file = card_files
+    assert build_graph(folder, database_url, schema, (oracle, printings_file)) == 1
+    assert capsys.readouterr().out.strip().splitlines()[-1] == (
+        f"Scryfall's files aren't all in {folder}/. Fetch them with: topdeck cards fetch --yes"
+    )
 
 
 def test_a_failed_build_ends_on_one_plain_line(
-    card_files, database_url, schema, monkeypatch, capsys
+    card_files, source_files, database_url, schema, monkeypatch, capsys
 ):
     folder, oracle, printings_file = card_files
 
@@ -332,7 +364,7 @@ def test_a_failed_build_ends_on_one_plain_line(
         raise psycopg.errors.ForeignKeyViolation("insert violates a foreign key\nDETAIL: more")
 
     monkeypatch.setattr(graph, "build", broken)
-    assert build_graph(folder, database_url, schema, (oracle, printings_file)) == 1
+    assert build_graph(folder, database_url, schema, (oracle, printings_file), source_files) == 1
     printed = capsys.readouterr().out.strip().splitlines()
     assert printed == [
         "The graph was not built, and any graph already there is unchanged: "

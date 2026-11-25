@@ -142,6 +142,13 @@ def test_the_invented_artists_are_counted_per_printing(invented_graph):
     assert two["the_2024_way"] == [
         {"artist": "Invented Artist", "cards": 8, "rank_by_printings": 1}
     ]
+    # Fewer artists than the top 15, so both lists are whole, and each artist without
+    # basic lands carries their printings with them too.
+    assert two["top"] == answers.TOP_ARTISTS and two["ranks_kept"] == answers.TOP_ARTISTS
+    assert [
+        (row["artist"], row["printings_with_basic_lands"])
+        for row in two["without_basic_lands"]["by_printings"]
+    ] == [("Invented Artist", 8), ("Second Artist", 1)]
 
 
 def test_an_artist_with_no_rank_is_written_in_words_not_none():
@@ -186,3 +193,44 @@ def test_the_answers_command_records_then_matches(invented_graph, database_url, 
     assert answer_2024(record, page, False, database_url, schema) == 1
     last = capsys.readouterr().out.strip().splitlines()[-1]
     assert last.startswith(f"The record at {record} is not valid JSON")
+
+
+class InventedArtistRows:
+    """A stand-in cursor holding four invented artists. Artist A's printings are mostly
+    basic lands, so without them A falls from the top to the bottom."""
+
+    ROWS = {
+        answers.ARTISTS_BY_PRINTING: [
+            ("A", 10, 4, 6),
+            ("B", 8, 8, 0),
+            ("C", 7, 7, 0),
+            ("D", 5, 5, 0),
+        ],
+        answers.ARTISTS_WITHOUT_BASIC_LANDS: [("B", 8, 8), ("C", 7, 7), ("D", 5, 5), ("A", 4, 4)],
+        answers.ARTISTS_THE_2024_WAY: [("B", 8), ("C", 7), ("D", 5), ("A", 4)],
+    }
+
+    def execute(self, query):
+        self.rows = self.ROWS[query]
+        return self
+
+    def fetchall(self):
+        return self.rows
+
+
+def test_both_artist_lists_go_down_to_the_deepest_rank_either_top_reaches(monkeypatch):
+    """With a top of 2, C is second without basic lands but third counting every
+    printing, so both lists are kept down to rank 3, and each is whole to there."""
+    monkeypatch.setattr(answers, "TOP_ARTISTS", 2)
+    two = answers.artists(InventedArtistRows())
+    assert two["top"] == 2 and two["ranks_kept"] == 3
+    assert [row["artist"] for row in two["by_printings"]] == ["A", "B", "C"]
+    without = two["without_basic_lands"]["by_printings"]
+    assert [(row["artist"], row["rank_with_basic_lands"]) for row in without] == [
+        ("B", 2),
+        ("C", 3),
+        ("D", 4),
+    ]
+    assert [row["printings_with_basic_lands"] for row in without] == [8, 7, 5]
+    assert two["by_printings"][0]["rank_without_basic_lands"] == 4
+    assert len(two["the_2024_way"]) == 2

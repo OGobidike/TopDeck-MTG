@@ -8,6 +8,7 @@ rounded once, here.
 
 from __future__ import annotations
 
+from html import escape
 from pathlib import Path
 
 ANSWERS_PAGE = Path("docs/2024-QUESTIONS.md")
@@ -63,6 +64,38 @@ def artist_headline(two: dict) -> str:
     return sentence
 
 
+def picture(name: str, alt: str, folder: str = "images") -> list[str]:
+    """A chart that follows the reader's theme: the dark drawing on GitHub's dark page,
+    the light one everywhere else. Both are drawn by `topdeck figures`."""
+    return [
+        "<picture>",
+        f'  <source media="(prefers-color-scheme: dark)" srcset="{folder}/{name}-dark.png">',
+        f'  <img alt="{escape(alt, quote=True)}" src="{folder}/{name}-light.png">',
+        "</picture>",
+    ]
+
+
+def _subtypes_alt(three: dict) -> str:
+    """The subtypes chart's finding in words, for a reader who can't see it."""
+    rows = three["strongest"]
+    if not rows:
+        return "No subtype has enough cards to show a tie to one colour."
+    whole = sorted((r for r in rows if r["share"] >= 1), key=lambda r: -r["cards"])
+    low = min(r["share"] for r in rows)
+    lead = ""
+    if len(whole) >= 2:
+        a, b = whole[0], whole[1]
+        lead = (
+            f"All {a['cards']} {a['subtype']} cards are {a['colour']} and all {b['cards']} "
+            f"{b['subtype']} cards {b['colour']}; "
+        )
+    shares = sorted(three["colour_share"].values())
+    return (
+        f"{lead}these {len(rows)} subtypes are {low * 100:.0f}% to 100% one colour, "
+        f"against {shares[0] * 100:.0f}% to {shares[-1] * 100:.0f}% of all cards."
+    )
+
+
 def render_answers(answers: dict) -> str:
     one = answers["elves_and_goblins"]
     two = answers["artists"]
@@ -82,7 +115,8 @@ def render_answers(answers: dict) -> str:
         f"of {answers['snapshot']}.",
         "",
         "`uv run topdeck answers` works every number on this page out again and checks it "
-        "against [`results/answers_2024.json`](../results/answers_2024.json).",
+        "against [`results/answers_2024.json`](../results/answers_2024.json). "
+        "`uv run topdeck figures` draws the charts from the same record.",
         "",
         "## 📏 How to read the numbers",
         "",
@@ -120,12 +154,20 @@ def render_answers(answers: dict) -> str:
         "- " + _tie(goblin, "Goblin creatures", "creatures", one["colour_share"]["red"]),
         "",
         f"Here are the {len(one['commonest_subtypes'])} commonest creature subtypes, each "
-        "with the colour it is most tied to. The lift compares each with all the creatures.",
+        "with the colour it is most tied to, ordered by lift as in the chart. The lift "
+        "compares each with all the creatures.",
+        "",
+        *picture(
+            "lift-by-subtype",
+            f"Elves are green {elf['lift']:.1f} times as often as creatures in general, and "
+            f"Goblins red {goblin['lift']:.1f} times as often. A dot for each of the "
+            f"{len(one['commonest_subtypes'])} commonest creature subtypes.",
+        ),
         "",
         "| Subtype | Creatures | Colour | Share | Lift |",
         "| --- | --- | --- | --- | --- |",
     ]
-    for row in one["commonest_subtypes"]:
+    for row in sorted(one["commonest_subtypes"], key=lambda row: -row["lift"]):
         lines.append(
             f"| {row['subtype']} | {row['cards']:,} | {row['colour'].capitalize()} | "
             f"{percent(row['share'])} | {row['lift']:.2f} "
@@ -148,11 +190,19 @@ def render_answers(answers: dict) -> str:
         "reprinted in nearly every set, so an artist who painted many of them climbs the "
         "count quickly.",
         "",
+        *picture(
+            "artists-basic-lands",
+            f"The top artists ranked with basic lands and without them: "
+            f"{two['without_basic_lands']['by_printings'][0]['artist']} rises to first and "
+            f"{two['by_printings'][0]['artist']} falls to "
+            f"{rank(two['by_printings'][0]['rank_without_basic_lands'])}.",
+        ),
+        "",
         "| Artist | Printings | Of them basic lands | Different cards | "
         "Rank without basic lands | Rank the 2024 way |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
-    for row in two["by_printings"]:
+    for row in two["by_printings"][: two["top"]]:
         lines.append(
             f"| {row['artist']} | {row['printings']:,} | {row['basic_lands']:,} | "
             f"{row['different_cards']:,} | {rank(row['rank_without_basic_lands'])} | "
@@ -166,7 +216,7 @@ def render_answers(answers: dict) -> str:
         "| Artist | Printings, no basic lands | Different cards | Rank with basic lands |",
         "| --- | --- | --- | --- |",
     ]
-    for row in two["without_basic_lands"]["by_printings"]:
+    for row in two["without_basic_lands"]["by_printings"][: two["top"]]:
         lines.append(
             f"| {row['artist']} | {row['printings']:,} | {row['different_cards']:,} | "
             f"{rank(row['rank_with_basic_lands'])} |"
@@ -193,9 +243,11 @@ def render_answers(answers: dict) -> str:
         "## 3. Which subtypes hide inside which colours?",
         "",
         f"Of the {three['subtypes_considered']} subtypes with at least 30 cards, these "
-        f"{len(three['strongest'])} are tied most strongly to one colour. This table "
-        f"compares against all {three['cards']:,} cards, not only creatures, so its subtypes "
-        "include kinds that aren't creatures, such as Auras and Sagas.",
+        f"{len(three['strongest'])} are tied most strongly to one colour. This chart and "
+        f"table compare against all {three['cards']:,} cards, not only creatures, so their "
+        "subtypes include kinds that aren't creatures, such as Auras and Sagas.",
+        "",
+        *picture("subtypes-by-colour", _subtypes_alt(three)),
         "",
         "| Subtype | Cards | Colour | Share | Lift |",
         "| --- | --- | --- | --- | --- |",

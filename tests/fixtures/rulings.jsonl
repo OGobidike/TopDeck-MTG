@@ -1,0 +1,7 @@
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000001", "source": "wotc", "published_at": "2020-01-01", "comment": "An invented ruling, written for the tests."}
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000001", "source": "wotc", "published_at": "2021-02-02", "comment": "A second invented ruling."}
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000001", "source": "wotc", "published_at": "2021-02-02", "comment": "A second invented ruling."}
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000005", "source": "scryfall", "published_at": "2022-03-03", "comment": "An invented note, as if from Scryfall's staff."}
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000006", "source": "wotc", "published_at": "2023-04-04", "comment": "A third invented ruling."}
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000010", "source": "wotc", "published_at": "2020-01-01", "comment": "An invented ruling on a joke card."}
+{"object": "ruling", "oracle_id": "00000000-0000-4000-8000-000000000008", "source": "scryfall", "published_at": "2020-01-01", "comment": "An invented note on a token."}

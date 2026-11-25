@@ -41,7 +41,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
       # --locked fails if uv.lock is out of date, so CI installs exactly what was tested.
-      - run: uv sync --locked
+      # The figures extra brings matplotlib, so the chart tests run here too.
+      - run: uv sync --locked --extra figures
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       # No test may reach the internet: no key, no cost. -rs lists any test that was

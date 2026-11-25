@@ -1,5 +1,6 @@
 {
   "snapshot": "2026-11-21",
+  "sources_snapshot": "2026-11-22",
   "tables": {
     "colours": 5,
     "types": 10,
@@ -12,6 +13,10 @@
     "sets": 626,
     "artists": 2378,
     "printings": 97976,
+    "rulings": 77164,
+    "illustrations": 49341,
+    "art_tags": 11863,
+    "oracle_tags": 4607,
     "card_colour": 33763,
     "card_colour_identity": 36690,
     "card_type": 34130,
@@ -23,6 +28,47 @@
     "face_type": 1764,
     "face_subtype": 1784,
     "face_supertype": 334,
-    "printing_artist": 97969
+    "printing_artist": 97969,
+    "printing_illustration": 99306,
+    "card_oracle_tag": 215851,
+    "illustration_art_tag": 473401,
+    "art_tag_parent": 20349,
+    "oracle_tag_parent": 4633
+  },
+  "coverage": {
+    "given links": 32495,
+    "rulings": 19568,
+    "oracle tags": 32297,
+    "art tags": 32495
+  },
+  "files_read": {
+    "art tag links": 512162,
+    "art tags": 11863,
+    "oracle tag links": 241236,
+    "oracle tags": 4607,
+    "rulings": 80928,
+    "rulings written by Scryfall": 69
+  },
+  "skipped": {
+    "art tag links": {
+      "on a picture that no real printing of a counted card has": 38761
+    },
+    "oracle tag links": {
+      "on a card that doesn't count": 25385
+    },
+    "rulings": {
+      "an exact repeat of another ruling": 43,
+      "for a card that doesn't count": 3721
+    }
+  },
+  "methods": {
+    "rulings": {
+      "given": 77130,
+      "scryfall": 34
+    }
+  },
+  "unlinked_tags": {
+    "oracle tags": 505,
+    "art tags": 775
   }
 }

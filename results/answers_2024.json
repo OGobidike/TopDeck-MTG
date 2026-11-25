@@ -290,6 +290,8 @@
       "printings": 15985,
       "share": 0.163164
     },
+    "top": 15,
+    "ranks_kept": 18,
     "by_printings": [
       {
         "artist": "John Avon",
@@ -410,6 +412,30 @@
         "different_cards": 155,
         "rank_without_basic_lands": 40,
         "rank_2024": 54
+      },
+      {
+        "artist": "Kieran Yanner",
+        "printings": 561,
+        "basic_lands": 0,
+        "different_cards": 251,
+        "rank_without_basic_lands": 13,
+        "rank_2024": 11
+      },
+      {
+        "artist": "Carl Critchlow",
+        "printings": 559,
+        "basic_lands": 0,
+        "different_cards": 228,
+        "rank_without_basic_lands": 14,
+        "rank_2024": 15
+      },
+      {
+        "artist": "Pete Venters",
+        "printings": 557,
+        "basic_lands": 3,
+        "different_cards": 295,
+        "rank_without_basic_lands": 15,
+        "rank_2024": 6
       }
     ],
     "without_basic_lands": {
@@ -419,91 +445,127 @@
           "artist": "Kev Walker",
           "printings": 1126,
           "different_cards": 461,
-          "rank_with_basic_lands": 2
+          "rank_with_basic_lands": 2,
+          "printings_with_basic_lands": 1153
         },
         {
           "artist": "Svetlin Velinov",
           "printings": 858,
           "different_cards": 364,
-          "rank_with_basic_lands": 3
+          "rank_with_basic_lands": 3,
+          "printings_with_basic_lands": 879
         },
         {
           "artist": "John Avon",
           "printings": 782,
           "different_cards": 217,
-          "rank_with_basic_lands": 1
+          "rank_with_basic_lands": 1,
+          "printings_with_basic_lands": 1216
         },
         {
           "artist": "Dan Murayama Scott",
           "printings": 773,
           "different_cards": 303,
-          "rank_with_basic_lands": 4
+          "rank_with_basic_lands": 4,
+          "printings_with_basic_lands": 774
         },
         {
           "artist": "Daarken",
           "printings": 757,
           "different_cards": 306,
-          "rank_with_basic_lands": 5
+          "rank_with_basic_lands": 5,
+          "printings_with_basic_lands": 758
         },
         {
           "artist": "Greg Staples",
           "printings": 745,
           "different_cards": 328,
-          "rank_with_basic_lands": 6
+          "rank_with_basic_lands": 6,
+          "printings_with_basic_lands": 756
         },
         {
           "artist": "Chris Rahn",
           "printings": 703,
           "different_cards": 241,
-          "rank_with_basic_lands": 8
+          "rank_with_basic_lands": 8,
+          "printings_with_basic_lands": 706
         },
         {
           "artist": "Jesper Ejsing",
           "printings": 597,
           "different_cards": 229,
-          "rank_with_basic_lands": 10
+          "rank_with_basic_lands": 10,
+          "printings_with_basic_lands": 604
         },
         {
           "artist": "Mark Tedin",
           "printings": 588,
           "different_cards": 202,
-          "rank_with_basic_lands": 9
+          "rank_with_basic_lands": 9,
+          "printings_with_basic_lands": 617
         },
         {
           "artist": "Adam Paquette",
           "printings": 583,
           "different_cards": 172,
-          "rank_with_basic_lands": 7
+          "rank_with_basic_lands": 7,
+          "printings_with_basic_lands": 748
         },
         {
           "artist": "Matt Stewart",
           "printings": 577,
           "different_cards": 252,
-          "rank_with_basic_lands": 13
+          "rank_with_basic_lands": 13,
+          "printings_with_basic_lands": 578
         },
         {
           "artist": "Christopher Moeller",
           "printings": 574,
           "different_cards": 251,
-          "rank_with_basic_lands": 11
+          "rank_with_basic_lands": 11,
+          "printings_with_basic_lands": 595
         },
         {
           "artist": "Kieran Yanner",
           "printings": 561,
           "different_cards": 251,
-          "rank_with_basic_lands": 16
+          "rank_with_basic_lands": 16,
+          "printings_with_basic_lands": 561
         },
         {
           "artist": "Carl Critchlow",
           "printings": 559,
           "different_cards": 228,
-          "rank_with_basic_lands": 17
+          "rank_with_basic_lands": 17,
+          "printings_with_basic_lands": 559
         },
         {
           "artist": "Pete Venters",
           "printings": 554,
           "different_cards": 293,
-          "rank_with_basic_lands": 18
+          "rank_with_basic_lands": 18,
+          "printings_with_basic_lands": 557
+        },
+        {
+          "artist": "Izzy",
+          "printings": 547,
+          "different_cards": 231,
+          "rank_with_basic_lands": 19,
+          "printings_with_basic_lands": 547
+        },
+        {
+          "artist": "Steven Belledin",
+          "printings": 546,
+          "different_cards": 179,
+          "rank_with_basic_lands": 14,
+          "printings_with_basic_lands": 577
+        },
+        {
+          "artist": "Zoltan Boros",
+          "printings": 538,
+          "different_cards": 243,
+          "rank_with_basic_lands": 21,
+          "printings_with_basic_lands": 539
         }
       ]
     },

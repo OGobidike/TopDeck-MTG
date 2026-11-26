@@ -1,12 +1,12 @@
 {
   "snapshot": "2026-11-22",
   "seed": "topdeck-art-tag-check-2026-11-22",
-  "how": "Drawn by a fixed hash of the seed, the picture and the tag: 10 weak, 20 median, 10 strong and 10 very strong, by Tagger's own weights. Each picture is shown on its earliest real printing.",
+  "how": "Drawn by a fixed hash of the seed, the picture and the tag: 5 weak, 35 median, 5 strong and 5 very strong, by Tagger's own weights. Each picture is shown on its earliest real printing.",
   "quotas": {
-    "weak": 10,
-    "median": 20,
-    "strong": 10,
-    "very_strong": 10
+    "weak": 5,
+    "median": 35,
+    "strong": 5,
+    "very_strong": 5
   },
   "labels_in_the_graph": {
     "weak": 4334,
@@ -77,66 +77,6 @@
     },
     {
       "number": 6,
-      "card": "Screeching Silcaw",
-      "set": "som",
-      "collector_number": "42",
-      "face": "front",
-      "tag": "glowing mouth",
-      "weight": "weak",
-      "illustration_id": "84533f2b-b547-48d2-850b-f78435b581f3",
-      "tag_id": "83a1862d-18f0-43a5-85eb-36398c455220",
-      "link": "https://scryfall.com/card/som/42"
-    },
-    {
-      "number": 7,
-      "card": "Ignite the Beacon",
-      "set": "pwar",
-      "collector_number": "18s",
-      "face": "front",
-      "tag": "jace's cloak",
-      "weight": "weak",
-      "illustration_id": "92b73d79-b95b-43b7-8b8e-e79b35924e58",
-      "tag_id": "7e477966-ee2e-4957-bc13-fa92d49c5860",
-      "link": "https://scryfall.com/card/pwar/18s"
-    },
-    {
-      "number": 8,
-      "card": "Boommobile",
-      "set": "dft",
-      "collector_number": "113",
-      "face": "front",
-      "tag": "rocket goblin",
-      "weight": "weak",
-      "illustration_id": "a8fbffc6-df62-4bc7-a593-081973f2e3e1",
-      "tag_id": "0522073f-840a-430d-bd97-1d65d0ccd8d3",
-      "link": "https://scryfall.com/card/dft/113"
-    },
-    {
-      "number": 9,
-      "card": "Cruel Ultimatum",
-      "set": "ala",
-      "collector_number": "164",
-      "face": "front",
-      "tag": "spinal column",
-      "weight": "weak",
-      "illustration_id": "0d9d7f1e-64ed-4647-a4ea-aaac16866dfd",
-      "tag_id": "140751be-ac18-4278-b2a6-7deba335957f",
-      "link": "https://scryfall.com/card/ala/164"
-    },
-    {
-      "number": 10,
-      "card": "Scotty, Chief Engineer",
-      "set": "trc",
-      "collector_number": "184",
-      "face": "front",
-      "tag": "starfleet insignia",
-      "weight": "weak",
-      "illustration_id": "a7cb2209-fe74-44b8-8dab-b406a7b06037",
-      "tag_id": "aa40e6bc-80f4-4381-bd8f-d68a3efb0635",
-      "link": "https://scryfall.com/card/trc/184"
-    },
-    {
-      "number": 11,
       "card": "Rhox Charger",
       "set": "ala",
       "collector_number": "145",
@@ -148,7 +88,7 @@
       "link": "https://scryfall.com/card/ala/145"
     },
     {
-      "number": 12,
+      "number": 7,
       "card": "Teferi's Ageless Insight",
       "set": "sld",
       "collector_number": "2214",
@@ -160,7 +100,7 @@
       "link": "https://scryfall.com/card/sld/2214"
     },
     {
-      "number": 13,
+      "number": 8,
       "card": "Sugar Coat",
       "set": "blb",
       "collector_number": "76",
@@ -172,7 +112,7 @@
       "link": "https://scryfall.com/card/blb/76"
     },
     {
-      "number": 14,
+      "number": 9,
       "card": "Trumpeting Herd",
       "set": "mh1",
       "collector_number": "187",
@@ -184,7 +124,7 @@
       "link": "https://scryfall.com/card/mh1/187"
     },
     {
-      "number": 15,
+      "number": 10,
       "card": "Sadistic Hypnotist",
       "set": "ody",
       "collector_number": "159",
@@ -196,7 +136,7 @@
       "link": "https://scryfall.com/card/ody/159"
     },
     {
-      "number": 16,
+      "number": 11,
       "card": "Kavaron, Memorial World",
       "set": "eoe",
       "collector_number": "255",
@@ -208,7 +148,7 @@
       "link": "https://scryfall.com/card/eoe/255"
     },
     {
-      "number": 17,
+      "number": 12,
       "card": "Clarion Cathars",
       "set": "mid",
       "collector_number": "14",
@@ -220,7 +160,7 @@
       "link": "https://scryfall.com/card/mid/14"
     },
     {
-      "number": 18,
+      "number": 13,
       "card": "Laboratory Maniac",
       "set": "slz",
       "collector_number": "21",
@@ -232,7 +172,7 @@
       "link": "https://scryfall.com/card/slz/21"
     },
     {
-      "number": 19,
+      "number": 14,
       "card": "The Lord of the Eagles",
       "set": "hob",
       "collector_number": "240",
@@ -244,7 +184,7 @@
       "link": "https://scryfall.com/card/hob/240"
     },
     {
-      "number": 20,
+      "number": 15,
       "card": "A.I.M. Labs",
       "set": "msh",
       "collector_number": "257",
@@ -256,7 +196,7 @@
       "link": "https://scryfall.com/card/msh/257"
     },
     {
-      "number": 21,
+      "number": 16,
       "card": "Curse of Hospitality",
       "set": "pvow",
       "collector_number": "152s",
@@ -268,7 +208,7 @@
       "link": "https://scryfall.com/card/pvow/152s"
     },
     {
-      "number": 22,
+      "number": 17,
       "card": "Omen Hawker",
       "set": "mom",
       "collector_number": "70",
@@ -280,7 +220,7 @@
       "link": "https://scryfall.com/card/mom/70"
     },
     {
-      "number": 23,
+      "number": 18,
       "card": "Gallant Fowlknight",
       "set": "ecl",
       "collector_number": "17",
@@ -292,7 +232,7 @@
       "link": "https://scryfall.com/card/ecl/17"
     },
     {
-      "number": 24,
+      "number": 19,
       "card": "Niv-Mizzet, Visionary",
       "set": "fdn",
       "collector_number": "123",
@@ -304,7 +244,7 @@
       "link": "https://scryfall.com/card/fdn/123"
     },
     {
-      "number": 25,
+      "number": 20,
       "card": "Maddening Cacophony",
       "set": "sld",
       "collector_number": "2674",
@@ -316,7 +256,7 @@
       "link": "https://scryfall.com/card/sld/2674"
     },
     {
-      "number": 26,
+      "number": 21,
       "card": "Story Circle",
       "set": "10e",
       "collector_number": "49",
@@ -328,7 +268,7 @@
       "link": "https://scryfall.com/card/10e/49"
     },
     {
-      "number": 27,
+      "number": 22,
       "card": "Goblin Piledriver",
       "set": "sld",
       "collector_number": "21",
@@ -340,7 +280,7 @@
       "link": "https://scryfall.com/card/sld/21"
     },
     {
-      "number": 28,
+      "number": 23,
       "card": "Benthic Explorers",
       "set": "all",
       "collector_number": "24a",
@@ -352,7 +292,7 @@
       "link": "https://scryfall.com/card/all/24a"
     },
     {
-      "number": 29,
+      "number": 24,
       "card": "Paladin of Atonement",
       "set": "prix",
       "collector_number": "16s",
@@ -364,7 +304,7 @@
       "link": "https://scryfall.com/card/prix/16s"
     },
     {
-      "number": 30,
+      "number": 25,
       "card": "Woodland Champion",
       "set": "m20",
       "collector_number": "205",
@@ -376,7 +316,187 @@
       "link": "https://scryfall.com/card/m20/205"
     },
     {
+      "number": 26,
+      "card": "Fangorn, Tree Shepherd",
+      "set": "ltr",
+      "collector_number": "415",
+      "face": "front",
+      "tag": "panorama-ltr-isengard",
+      "weight": "median",
+      "illustration_id": "d5d42e54-56ef-48f6-8cc2-ffdab96bbe35",
+      "tag_id": "85517258-6f96-493a-93a6-c41b6a82d9fe",
+      "link": "https://scryfall.com/card/ltr/415"
+    },
+    {
+      "number": 27,
+      "card": "Spirit Link",
+      "set": "9ed",
+      "collector_number": "47",
+      "face": "front",
+      "tag": "bracelet",
+      "weight": "median",
+      "illustration_id": "75f184b2-3e07-4a1b-b568-0c463f41156f",
+      "tag_id": "504e1485-305e-45aa-bea5-bff862ddfec4",
+      "link": "https://scryfall.com/card/9ed/47"
+    },
+    {
+      "number": 28,
+      "card": "Faith Healer",
+      "set": "usg",
+      "collector_number": "14",
+      "face": "front",
+      "tag": "brown hair",
+      "weight": "median",
+      "illustration_id": "76feed7a-7397-4362-a37b-d21ae0eb4900",
+      "tag_id": "f2e4cdbf-8874-421c-9b44-b630c439bbf0",
+      "link": "https://scryfall.com/card/usg/14"
+    },
+    {
+      "number": 29,
+      "card": "Swamp",
+      "set": "mrd",
+      "collector_number": "298",
+      "face": "front",
+      "tag": "phallic",
+      "weight": "median",
+      "illustration_id": "d867265e-0f44-4e1d-bd90-8db0d4456a1c",
+      "tag_id": "b91aed82-4932-4c40-be14-356637ba0a22",
+      "link": "https://scryfall.com/card/mrd/298"
+    },
+    {
+      "number": 30,
+      "card": "Lizard, Connors's Curse",
+      "set": "pspm",
+      "collector_number": "106s",
+      "face": "front",
+      "tag": "tail",
+      "weight": "median",
+      "illustration_id": "d5cda58c-f231-46bc-8c23-0db4f936ab91",
+      "tag_id": "27fd4c85-eff7-4452-bd00-58e8333ddf26",
+      "link": "https://scryfall.com/card/pspm/106s"
+    },
+    {
       "number": 31,
+      "card": "Ordeal of Purphoros",
+      "set": "ddl",
+      "collector_number": "23",
+      "face": "front",
+      "tag": "sword",
+      "weight": "median",
+      "illustration_id": "dabc987c-1449-48a8-8176-5d8d87cb7763",
+      "tag_id": "b7636791-c403-435a-a512-2943f6119489",
+      "link": "https://scryfall.com/card/ddl/23"
+    },
+    {
+      "number": 32,
+      "card": "Swamp",
+      "set": "acr",
+      "collector_number": "106",
+      "face": "front",
+      "tag": "building",
+      "weight": "median",
+      "illustration_id": "dcef75b0-bbd6-40c0-ac7f-2e0ae9a0cadc",
+      "tag_id": "6d234f32-7fcb-433a-80b6-09159d3e9045",
+      "link": "https://scryfall.com/card/acr/106"
+    },
+    {
+      "number": 33,
+      "card": "Brotherhood Headquarters",
+      "set": "acr",
+      "collector_number": "266",
+      "face": "front",
+      "tag": "italy",
+      "weight": "median",
+      "illustration_id": "18952f92-a337-4f31-abc8-ce94a170ec49",
+      "tag_id": "2713e99b-70ab-493d-be1f-3deecbc0f0ba",
+      "link": "https://scryfall.com/card/acr/266"
+    },
+    {
+      "number": 34,
+      "card": "Lambholt Raconteur // Lambholt Ravager",
+      "set": "dbl",
+      "collector_number": "434",
+      "face": "front",
+      "tag": "hand outstretched",
+      "weight": "median",
+      "illustration_id": "00afbbd7-fd70-487c-9a58-5d8d6c386f54",
+      "tag_id": "531b8ed8-4838-48c4-9573-cf5b63643f05",
+      "link": "https://scryfall.com/card/dbl/434"
+    },
+    {
+      "number": 35,
+      "card": "Lightning Blast",
+      "set": "7ed",
+      "collector_number": "200",
+      "face": "front",
+      "tag": "midriff",
+      "weight": "median",
+      "illustration_id": "2d014df0-09cc-4bd4-b22d-1fc3d0774be3",
+      "tag_id": "47de217b-74cc-4ff1-87b7-ab94d1403566",
+      "link": "https://scryfall.com/card/7ed/200"
+    },
+    {
+      "number": 36,
+      "card": "Berserker's Frenzy",
+      "set": "afc",
+      "collector_number": "29",
+      "face": "front",
+      "tag": "dual wielding",
+      "weight": "median",
+      "illustration_id": "32a37805-f140-4f86-ac3e-39e4b45663f3",
+      "tag_id": "4f4a84d8-aba5-4fc2-832a-12d1da0b0493",
+      "link": "https://scryfall.com/card/afc/29"
+    },
+    {
+      "number": 37,
+      "card": "Plains",
+      "set": "ala",
+      "collector_number": "232",
+      "face": "front",
+      "tag": "artist signature",
+      "weight": "median",
+      "illustration_id": "8f89feaa-1cb9-4e8f-9800-cde13e1e8704",
+      "tag_id": "b1248602-1af8-4830-85b9-b24961f57f66",
+      "link": "https://scryfall.com/card/ala/232"
+    },
+    {
+      "number": 38,
+      "card": "Island",
+      "set": "mh3",
+      "collector_number": "305",
+      "face": "front",
+      "tag": "zendikar",
+      "weight": "median",
+      "illustration_id": "e149b206-1e32-461a-9595-94c1b659d702",
+      "tag_id": "84620c89-6cc6-4819-b716-2cdd8156de20",
+      "link": "https://scryfall.com/card/mh3/305"
+    },
+    {
+      "number": 39,
+      "card": "Mistform Mutant",
+      "set": "ons",
+      "collector_number": "95",
+      "face": "front",
+      "tag": "multiple heads",
+      "weight": "median",
+      "illustration_id": "daed9087-bfe3-469e-9c28-fbd4004946b8",
+      "tag_id": "f6d2f875-3a8c-405d-a798-0beb2114bc15",
+      "link": "https://scryfall.com/card/ons/95"
+    },
+    {
+      "number": 40,
+      "card": "Plains",
+      "set": "ltr",
+      "collector_number": "272",
+      "face": "front",
+      "tag": "helm's deep",
+      "weight": "median",
+      "illustration_id": "7fb5fd7c-ace7-415c-bb37-71f86319fb1e",
+      "tag_id": "927886c8-fe03-4b0f-b3b4-829d8e241da9",
+      "link": "https://scryfall.com/card/ltr/272"
+    },
+    {
+      "number": 41,
       "card": "Mountain",
       "set": "stx",
       "collector_number": "373",
@@ -388,7 +508,7 @@
       "link": "https://scryfall.com/card/stx/373"
     },
     {
-      "number": 32,
+      "number": 42,
       "card": "Toxic Deluge",
       "set": "c13",
       "collector_number": "96",
@@ -400,7 +520,7 @@
       "link": "https://scryfall.com/card/c13/96"
     },
     {
-      "number": 33,
+      "number": 43,
       "card": "Invasion of Kaladesh // Aetherwing, Golden-Scale Flagship",
       "set": "mom",
       "collector_number": "234",
@@ -412,7 +532,7 @@
       "link": "https://scryfall.com/card/mom/234"
     },
     {
-      "number": 34,
+      "number": 44,
       "card": "The Theorist, Jace Beleren",
       "set": "fra",
       "collector_number": "363",
@@ -424,7 +544,7 @@
       "link": "https://scryfall.com/card/fra/363"
     },
     {
-      "number": 35,
+      "number": 45,
       "card": "Swamp",
       "set": "iko",
       "collector_number": "266",
@@ -436,67 +556,7 @@
       "link": "https://scryfall.com/card/iko/266"
     },
     {
-      "number": 36,
-      "card": "Borborygmos Enraged",
-      "set": "gtc",
-      "collector_number": "147",
-      "face": "front",
-      "tag": "borborygmos",
-      "weight": "strong",
-      "illustration_id": "ed896d53-6b61-4dce-a532-6b5da4ae8a2d",
-      "tag_id": "93c8bc7b-6215-4b33-8d76-1fd417493983",
-      "link": "https://scryfall.com/card/gtc/147"
-    },
-    {
-      "number": 37,
-      "card": "Gnarled Sage",
-      "set": "m21",
-      "collector_number": "187",
-      "face": "front",
-      "tag": "treefolk",
-      "weight": "strong",
-      "illustration_id": "e144a996-704a-4d97-9bc6-995bd274d660",
-      "tag_id": "94df659a-e8bd-4a5a-a328-b253ea8b3405",
-      "link": "https://scryfall.com/card/m21/187"
-    },
-    {
-      "number": 38,
-      "card": "Harmonized Trio // Brainstorm",
-      "set": "psos",
-      "collector_number": "52p",
-      "face": "front",
-      "tag": "midriff",
-      "weight": "strong",
-      "illustration_id": "a239ac89-5f88-4136-ac6e-d4bb3c8f7b98",
-      "tag_id": "47de217b-74cc-4ff1-87b7-ab94d1403566",
-      "link": "https://scryfall.com/card/psos/52p"
-    },
-    {
-      "number": 39,
-      "card": "Mangara, the Diplomat",
-      "set": "m21",
-      "collector_number": "27",
-      "face": "front",
-      "tag": "sitting",
-      "weight": "strong",
-      "illustration_id": "c3d798e2-622f-4b8e-bc6e-aba2c4e5028a",
-      "tag_id": "f610cd33-efd4-4d3d-8f0c-4b9328d05c7c",
-      "link": "https://scryfall.com/card/m21/27"
-    },
-    {
-      "number": 40,
-      "card": "Spider-Punk",
-      "set": "pspm",
-      "collector_number": "92s",
-      "face": "front",
-      "tag": "the horns",
-      "weight": "strong",
-      "illustration_id": "a010b126-b55d-480a-801d-5e3f0287dfb2",
-      "tag_id": "67b88081-be53-4ff4-a97e-5f3fff402039",
-      "link": "https://scryfall.com/card/pspm/92s"
-    },
-    {
-      "number": 41,
+      "number": 46,
       "card": "Kresh the Bloodbraided",
       "set": "v11",
       "collector_number": "5",
@@ -508,7 +568,7 @@
       "link": "https://scryfall.com/card/v11/5"
     },
     {
-      "number": 42,
+      "number": 47,
       "card": "Mina and Denn, Wildborn",
       "set": "ogw",
       "collector_number": "156",
@@ -520,7 +580,7 @@
       "link": "https://scryfall.com/card/ogw/156"
     },
     {
-      "number": 43,
+      "number": 48,
       "card": "Hundred-Handed One",
       "set": "ths",
       "collector_number": "20",
@@ -532,7 +592,7 @@
       "link": "https://scryfall.com/card/ths/20"
     },
     {
-      "number": 44,
+      "number": 49,
       "card": "Jaya Ballard",
       "set": "dom",
       "collector_number": "132",
@@ -544,7 +604,7 @@
       "link": "https://scryfall.com/card/dom/132"
     },
     {
-      "number": 45,
+      "number": 50,
       "card": "Budoka Gardener // Dokai, Weaver of Life",
       "set": "chk",
       "collector_number": "202",
@@ -554,66 +614,6 @@
       "illustration_id": "a55204f4-ee18-4186-8e77-2a1caa920eee",
       "tag_id": "585db17a-c764-4ec8-8bf3-dd8c5dd03bab",
       "link": "https://scryfall.com/card/chk/202"
-    },
-    {
-      "number": 46,
-      "card": "Diabolic Tutor",
-      "set": "sld",
-      "collector_number": "721",
-      "face": "front",
-      "tag": "brain dead logo",
-      "weight": "very_strong",
-      "illustration_id": "ccd884b7-4304-49e4-ab37-e01c46d7244c",
-      "tag_id": "5c3f081b-7bcf-4e2b-aee0-837f0d5afa1f",
-      "link": "https://scryfall.com/card/sld/721"
-    },
-    {
-      "number": 47,
-      "card": "Recurring Insight",
-      "set": "roe",
-      "collector_number": "82",
-      "face": "front",
-      "tag": "reflection in eye",
-      "weight": "very_strong",
-      "illustration_id": "57e5d44a-4d28-4ee8-af34-0dda878d7aec",
-      "tag_id": "7e042e16-a785-4992-a63e-f38d974cf9e4",
-      "link": "https://scryfall.com/card/roe/82"
-    },
-    {
-      "number": 48,
-      "card": "Azure Fleet Admiral",
-      "set": "cmr",
-      "collector_number": "58",
-      "face": "front",
-      "tag": "yelise",
-      "weight": "very_strong",
-      "illustration_id": "af70030f-995d-4be1-8c27-a618dd28107c",
-      "tag_id": "ef7bfad0-25f7-44a0-932f-11ae97285539",
-      "link": "https://scryfall.com/card/cmr/58"
-    },
-    {
-      "number": 49,
-      "card": "Svyelun of Sea and Sky",
-      "set": "pmh2",
-      "collector_number": "69s",
-      "face": "front",
-      "tag": "svyelun",
-      "weight": "very_strong",
-      "illustration_id": "586a56b5-c391-4efb-9dda-43bf5438c759",
-      "tag_id": "252fc2ad-1d28-42f7-bdf5-6ff29f7f9a6c",
-      "link": "https://scryfall.com/card/pmh2/69s"
-    },
-    {
-      "number": 50,
-      "card": "Mannichi, the Fevered Dream",
-      "set": "bok",
-      "collector_number": "112",
-      "face": "front",
-      "tag": "mannichi",
-      "weight": "very_strong",
-      "illustration_id": "563585da-032f-43e0-8b43-70b2ec10573f",
-      "tag_id": "06c1508d-bd3a-4910-bb0e-d475c68ee36c",
-      "link": "https://scryfall.com/card/bok/112"
     }
   ]
 }

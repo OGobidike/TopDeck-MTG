@@ -287,7 +287,7 @@ def test_the_community_links_in_the_readme_split_as_recorded(root):
 
 
 def test_what_the_papers_say_the_art_tag_bar_takes_is_what_the_score_does(root):
-    """The share of median links, what the overall is worth, and how many of the 20
+    """The share of median links, what the overall is worth, and how many of the
     median labels may be wrong with the bar still cleared, worked out from the record."""
     readme = (root / "README.md").read_text()
     blueprint = (root / "docs/BLUEPRINT.md").read_text()

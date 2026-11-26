@@ -6,14 +6,19 @@ for any score. The check measures how often Tagger is right and reports that num
 does not promote any tag.
 
 The draw is fixed: each label's place in line comes from a hash of the seed, the picture
-and the tag, so the same graph always gives the same 50. Most labels are of middling
-weight, so a plain random draw would be nearly all of those. The draw is spread across
-Tagger's weights instead (QUOTAS below). Tagger's weight is its own grading of each label;
-the notes on the labels suggest it says how prominent the thing is in the picture. With
-10 or 20 labels a weight, each weight's share right is only a hint, so it carries a Wilson
-interval. The overall share right is weighted by how many labels of each weight the graph
-holds. Nearly all of them are median, so the overall rests almost wholly on the 20 median
-labels: it is worth about 21 labels, and carries its own interval at that size.
+and the tag, so the same graph always gives the same 50. The overall share right is
+weighted by how many labels of each weight the graph holds, and nearly all of them are
+median, so the overall rests almost wholly on the median labels. Most of the 50 are
+therefore median (QUOTAS below), which makes the overall worth about 37 labels; it carries
+a Wilson interval at that size. The other weights get a few labels each, enough to show a
+weight that is mostly wrong, each with its own interval. Tagger's weight is its own grading
+of each label; the notes on the labels suggest it says how prominent the thing is in the
+picture.
+
+The quotas were 10, 20, 10 and 10 when the draw was first recorded. They were moved to 5,
+35, 5 and 5 on 2026-11-26, before any label was marked, so the overall would rest on more
+labels. The seed is unchanged, so the new 50 keep the first 20 median labels and the first
+5 of each other weight from the old draw.
 
 The record of the draw holds no annotation: those are notes volunteers wrote, and their
 words stay out of the repo, as rulings' do. The table to mark by hand shows them, so it is
@@ -33,7 +38,7 @@ from topdeck.graph import SCHEMA, WEIGHTS, _checked
 from topdeck.snapshot import SOURCES_SNAPSHOT_DATE
 
 SEED = "topdeck-art-tag-check-2026-11-22"
-QUOTAS = {"weak": 10, "median": 20, "strong": 10, "very_strong": 10}
+QUOTAS = {"weak": 5, "median": 35, "strong": 5, "very_strong": 5}
 # The bar, set before any label is marked: the share right, weighted by the labels of
 # each weight in the graph, must reach it. It is the bar the blueprint sets for links
 # extracted from rules text.

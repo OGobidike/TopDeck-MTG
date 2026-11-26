@@ -250,6 +250,23 @@ def test_the_art_tag_draw_keeps_to_its_quota_for_each_weight(invented_graph, mon
 
 
 @pytest.mark.db
+def test_a_smaller_quota_draws_the_first_labels_of_a_larger_one(invented_graph, monkeypatch):
+    """The seed puts every label in the same place in line, whatever the quotas, so moving
+    labels between weights keeps the ones already drawn, as the blueprint says it did."""
+    connection, schema, _ = invented_graph
+
+    def drawn(quotas):
+        monkeypatch.setattr(tags, "QUOTAS", quotas)
+        rows = tags.sample(connection, schema)["sample"]
+        return {(row["illustration_id"], row["tag_id"]) for row in rows}
+
+    smaller = drawn({"weak": 0, "median": 1, "strong": 1, "very_strong": 0})
+    larger = drawn({"weak": 1, "median": 2, "strong": 1, "very_strong": 1})
+    assert len(smaller) == 2
+    assert smaller < larger
+
+
+@pytest.mark.db
 def test_each_drawn_picture_is_shown_on_its_earliest_real_printing(invented_graph):
     connection, schema, _ = invented_graph
     shown = {
